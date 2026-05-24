@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn() => redirect()->route('login'));
 
 
-// ── Auth (guests only) 
+// Auth (guests only) 
 
 Route::middleware('guest')->group(function () {
 
@@ -30,7 +30,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->name('logout');
 
 
-// ── Panel (authenticated users only) 
+// Panel (authenticated users only) 
 
 Route::prefix('panel')->name('panel.')->middleware('auth')->group(function () {
 

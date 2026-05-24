@@ -35,11 +35,6 @@
 
     <div class="panel-header-right">
 
-      {{-- Role badge --}}
-      <span class="role-badge role-badge--{{ auth()->user()->role }}">
-        {{ auth()->user()->getRoleLabel() }}
-      </span>
-
       {{-- User --}}
       <div class="panel-user">
         <div class="panel-avatar">{{ auth()->user()->getRoleInitial() }}</div>
