@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'role', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -28,5 +28,42 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // ── Role helpers ─────────────────────────────────────────────────────────
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isSupervisor(): bool
+    {
+        return $this->role === 'supervisor';
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->role === 'staff';
+    }
+
+    public function getRoleLabel(): string
+    {
+        return match ($this->role) {
+            'admin'      => 'Administrator',
+            'supervisor' => 'Supervisor',
+            'staff'      => 'Depot Staff',
+            default      => ucfirst($this->role),
+        };
+    }
+
+    public function getRoleInitial(): string
+    {
+        return match ($this->role) {
+            'admin'      => 'A',
+            'supervisor' => 'S',
+            'staff'      => 'D',
+            default      => strtoupper($this->role[0]),
+        };
     }
 }

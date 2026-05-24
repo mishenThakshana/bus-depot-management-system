@@ -34,24 +34,24 @@
     </div>
 
     <div class="panel-header-right">
-      {{-- Role Switcher (Temporary) --}}
-      <div class="role-switcher-wrap">
-        <span class="role-switcher-label">View as</span>
-        <select class="role-switcher-select" id="roleSwitcher">
-          <option value="admin">Admin</option>
-          <option value="supervisor">Supervisor</option>
-          <option value="staff">Staff</option>
-        </select>
-      </div>
+
+      {{-- Role badge --}}
+      <span class="role-badge role-badge--{{ auth()->user()->role }}">
+        {{ auth()->user()->getRoleLabel() }}
+      </span>
 
       {{-- User --}}
       <div class="panel-user">
-        <div class="panel-avatar" id="panelAvatar">A</div>
-        <span class="panel-username" id="panelUsername">Admin User</span>
+        <div class="panel-avatar">{{ auth()->user()->getRoleInitial() }}</div>
+        <span class="panel-username">{{ auth()->user()->name }}</span>
       </div>
 
       {{-- Sign out --}}
-      <button class="panel-signout" type="button">Sign out</button>
+      <form method="POST" action="{{ route('logout') }}" style="display:inline;">
+        @csrf
+        <button type="submit" class="panel-signout">Sign out</button>
+      </form>
+
     </div>
   </header>
 
@@ -62,13 +62,13 @@
     <aside class="panel-sidebar">
       <div class="sidebar-role-bar">
         <div class="sidebar-role-label">Signed in as</div>
-        <div class="sidebar-role-name" id="sidebarRoleName">Administrator</div>
+        <div class="sidebar-role-name">{{ auth()->user()->getRoleLabel() }}</div>
       </div>
 
       <nav class="sidebar-nav">
 
         {{-- ── ADMIN NAV ── --}}
-        <div class="sidebar-nav-group is-active" id="nav-admin">
+        <div class="sidebar-nav-group {{ auth()->user()->isAdmin() ? 'is-active' : '' }}" id="nav-admin">
 
           <a href="{{ route('panel.dashboard') }}" class="nav-item {{ request()->routeIs('panel.dashboard') ? 'is-active' : '' }}">
             <span class="nav-item-icon">
@@ -164,7 +164,7 @@
 
 
         {{-- ── SUPERVISOR NAV ── --}}
-        <div class="sidebar-nav-group" id="nav-supervisor">
+        <div class="sidebar-nav-group {{ auth()->user()->isSupervisor() ? 'is-active' : '' }}" id="nav-supervisor">
 
           <a href="{{ route('panel.dashboard') }}" class="nav-item {{ request()->routeIs('panel.dashboard') ? 'is-active' : '' }}">
             <span class="nav-item-icon">
@@ -224,7 +224,7 @@
 
 
         {{-- ── STAFF NAV ── --}}
-        <div class="sidebar-nav-group" id="nav-staff">
+        <div class="sidebar-nav-group {{ auth()->user()->isStaff() ? 'is-active' : '' }}" id="nav-staff">
 
           <a href="{{ route('panel.dashboard') }}" class="nav-item {{ request()->routeIs('panel.dashboard') ? 'is-active' : '' }}">
             <span class="nav-item-icon">
@@ -275,67 +275,6 @@
   </div>{{-- /panel-body --}}
 </div>{{-- /panel-root --}}
 
-<script>
-(function () {
-  const ROLE_KEY = 'bdms_role';
-
-  const roleNames = {
-    admin: 'Administrator',
-    supervisor: 'Supervisor',
-    staff: 'Depot Staff',
-  };
-
-  const roleAvatars = {
-    admin: 'A',
-    supervisor: 'S',
-    staff: 'D',
-  };
-
-  const roleUsernames = {
-    admin: 'Admin User',
-    supervisor: 'Supervisor',
-    staff: 'Depot Staff',
-  };
-
-  function applyRole(role) {
-    // Sidebar groups
-    document.querySelectorAll('.sidebar-nav-group').forEach(function (el) {
-      el.classList.remove('is-active');
-    });
-    const group = document.getElementById('nav-' + role);
-    if (group) group.classList.add('is-active');
-
-    // Sidebar role name
-    const roleName = document.getElementById('sidebarRoleName');
-    if (roleName) roleName.textContent = roleNames[role] || role;
-
-    // Header avatar + username
-    const avatar = document.getElementById('panelAvatar');
-    const username = document.getElementById('panelUsername');
-    if (avatar) avatar.textContent = roleAvatars[role] || 'U';
-    if (username) username.textContent = roleUsernames[role] || role;
-
-    // Sync dropdown
-    const switcher = document.getElementById('roleSwitcher');
-    if (switcher) switcher.value = role;
-
-    // Save
-    localStorage.setItem(ROLE_KEY, role);
-  }
-
-  // Init on load
-  const saved = localStorage.getItem(ROLE_KEY) || 'admin';
-  applyRole(saved);
-
-  // Role switcher change
-  const switcher = document.getElementById('roleSwitcher');
-  if (switcher) {
-    switcher.addEventListener('change', function () {
-      applyRole(this.value);
-    });
-  }
-})();
-</script>
 
 </body>
 </html>
