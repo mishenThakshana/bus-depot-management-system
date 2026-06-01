@@ -13,5 +13,15 @@
   @yield('content')
 </div>
 
+<script>
+  document.addEventListener('submit', function (e) {
+    const btn = e.target.querySelector('[type="submit"]');
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = '0.55';
+      btn.style.cursor = 'not-allowed';
+    }
+  });
+</script>
 </body>
 </html>

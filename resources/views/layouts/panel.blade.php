@@ -37,7 +37,6 @@
 
       {{-- User --}}
       <div class="panel-user">
-        <div class="panel-avatar">{{ auth()->user()->getRoleInitial() }}</div>
         <span class="panel-username">{{ auth()->user()->name }}</span>
       </div>
 
@@ -271,5 +270,15 @@
 </div>{{-- /panel-root --}}
 
 
+<script>
+  document.addEventListener('submit', function (e) {
+    const btn = e.target.querySelector('[type="submit"]');
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = '0.55';
+      btn.style.cursor = 'not-allowed';
+    }
+  });
+</script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -8,7 +9,6 @@ Route::get('/', fn() => redirect()->route('login'));
 
 
 // Auth (guests only) 
-
 Route::middleware('guest')->group(function () {
 
     Route::get('/login', [AuthController::class, 'showLogin'])
@@ -29,10 +29,17 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
+// Forced password change (shown on login page when must_change_password is true)
+Route::middleware('auth')->group(function () {
+    Route::get('/change-password', [AuthController::class, 'showChangePassword'])
+        ->name('password.change');
+    Route::post('/change-password', [AuthController::class, 'changePassword'])
+        ->name('password.change.submit');
+});
+
 
 // Panel (authenticated users only) 
-
-Route::prefix('panel')->name('panel.')->middleware('auth')->group(function () {
+Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.change'])->group(function () {
 
     Route::get('/', fn() => redirect()->route('panel.dashboard'));
 
@@ -40,13 +47,13 @@ Route::prefix('panel')->name('panel.')->middleware('auth')->group(function () {
         ->name('dashboard');
 
     // ── Admin-only
-    Route::get('/users', fn() => view('panel.users'))
-        ->middleware('role:admin')
-        ->name('users');
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/users',                          [UserController::class, 'index'])->name('users');
+        Route::post('/users',                         [UserController::class, 'store'])->name('users.store');
+        Route::patch('/users/{user}/toggle-status',   [UserController::class, 'toggleStatus'])->name('users.toggle-status');
 
-    Route::get('/audit-log', fn() => view('panel.audit-log'))
-        ->middleware('role:admin')
-        ->name('audit-log');
+        Route::get('/audit-log', fn() => view('panel.audit-log'))->name('audit-log');
+    });
 
     // ── Admin and Supervisor
     Route::get('/routes',    fn() => view('panel.routes'))->middleware('role:admin,supervisor')->name('routes');
