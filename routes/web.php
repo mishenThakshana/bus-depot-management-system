@@ -20,8 +20,14 @@ Route::middleware('guest')->group(function () {
     Route::get('/forgot-password', fn() => view('auth.forgot-password'))
         ->name('password.request');
 
-    Route::post('/forgot-password', fn() => back()->with('status', 'If that email exists, a reset link has been sent.'))
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])
         ->name('password.email');
+
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])
+        ->name('password.reset');
+
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])
+        ->name('password.update');
 });
 
 // Logout (authenticated users)

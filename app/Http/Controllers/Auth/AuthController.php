@@ -7,8 +7,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class AuthController extends Controller
 {
@@ -73,8 +74,8 @@ class AuthController extends Controller
      */
     public function changePassword(Request $request): RedirectResponse
     {
-        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-            'password' => ['required', 'confirmed', Password::min(8)],
+        $validator = Validator::make($request->all(), [
+            'password' => ['required', 'confirmed', PasswordRule::min(8)],
         ]);
 
         if ($validator->fails()) {
@@ -89,6 +90,60 @@ class AuthController extends Controller
         return redirect()
             ->intended(route('panel.dashboard'))
             ->with('success', 'Password updated. Welcome!');
+    }
+
+    /**
+     * Send a password reset link to the given email.
+     */
+    public function sendResetLink(Request $request): RedirectResponse
+    {
+        $request->validate(['email' => ['required', 'email']]);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return back()->with('status', __($status));
+    }
+
+    /**
+     * Show the password reset form.
+     */
+    public function showResetPassword(Request $request, string $token): \Illuminate\View\View
+    {
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => $request->query('email', ''),
+        ]);
+    }
+
+    /**
+     * Handle the password reset submission.
+     */
+    public function resetPassword(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'token'    => ['required'],
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'confirmed', PasswordRule::min(8)],
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, string $password) {
+                $user->update([
+                    'password'             => Hash::make($password),
+                    'must_change_password' => false,
+                ]);
+            }
+        );
+
+        if ($status === Password::PasswordReset) {
+            return redirect()->route('login')
+                ->with('status', __($status));
+        }
+
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => __($status)]);
     }
 
     /**
