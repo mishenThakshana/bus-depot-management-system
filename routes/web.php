@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
@@ -45,7 +46,7 @@ Route::middleware('auth')->group(function () {
 
 
 // Panel (authenticated users only) 
-Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.change'])->group(function () {
+Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.change', 'session.timeout'])->group(function () {
 
     Route::get('/', fn() => redirect()->route('panel.dashboard'));
 
@@ -58,7 +59,7 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
         Route::post('/users',                         [UserController::class, 'store'])->name('users.store');
         Route::patch('/users/{user}/toggle-status',   [UserController::class, 'toggleStatus'])->name('users.toggle-status');
 
-        Route::get('/audit-log', fn() => view('panel.audit-log'))->name('audit-log');
+        Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log');
     });
 
     // ── Admin and Supervisor

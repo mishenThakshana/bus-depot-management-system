@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\LoginLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,6 +45,9 @@ class AuthController extends Controller
             }
 
             $request->session()->regenerate();
+            $request->session()->put('last_activity', now());
+
+            LoginLog::record(Auth::user(), 'login', $request->ip());
 
             if (Auth::user()->must_change_password) {
                 return redirect()->route('password.change');
@@ -151,6 +155,10 @@ class AuthController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
+        if (Auth::check()) {
+            LoginLog::record(Auth::user(), 'logout', $request->ip());
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();
