@@ -19,6 +19,15 @@
   </div>
 @endif
 
+@if (session('error'))
+  <div class="alert alert--error">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ session('error') }}
+  </div>
+@endif
+
 <div class="table-wrapper">
   <div class="table-header">
     <span class="table-title">All Routes <span class="table-count">({{ $routes->total() }})</span></span>
@@ -39,6 +48,7 @@
         <th>Destination</th>
         <th>Stops</th>
         <th>Distance</th>
+        <th>Status</th>
         <th></th>
       </tr>
     </thead>
@@ -51,6 +61,13 @@
           <td>{{ $route->destination }}</td>
           <td style="color:var(--text-muted);">{{ count($route->stops ?? []) }} stop{{ count($route->stops ?? []) !== 1 ? 's' : '' }}</td>
           <td style="color:var(--text-muted);">{{ number_format($route->distance_km, 1) }} km</td>
+          <td>
+            @if ($route->is_active)
+              <span class="status-badge status-badge--active">Active</span>
+            @else
+              <span class="status-badge status-badge--inactive">Inactive</span>
+            @endif
+          </td>
           <td>
             <div style="display:flex;align-items:center;gap:8px;">
               <button
@@ -72,6 +89,13 @@
                 </svg>
                 View Map
               </button>
+              <form method="POST" action="{{ route('panel.routes.toggle-active', $route) }}">
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="btn-ghost btn-ghost--sm" style="{{ $route->is_active ? 'color:var(--warning);border-color:var(--warning);' : 'color:var(--success);border-color:var(--success);' }}">
+                  {{ $route->is_active ? 'Deactivate' : 'Activate' }}
+                </button>
+              </form>
               <button
                 class="btn-ghost btn-ghost--sm"
                 onclick="openEditModal({{ json_encode([
@@ -377,6 +401,19 @@
 
 
 <style>
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+}
+.status-badge--active   { color: var(--success); background: #f0fdf4; border-color: #bbf7d0; }
+.status-badge--inactive { color: var(--text-muted); background: var(--bg); border-color: var(--border); }
+
 .stop-row {
   display: flex;
   align-items: center;

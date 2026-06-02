@@ -65,10 +65,11 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
 
     // ── Admin and Supervisor
     Route::middleware('role:admin,supervisor')->group(function () {
-        Route::get('/routes',          [RouteController::class, 'index'])->name('routes');
-        Route::post('/routes',            [RouteController::class, 'store'])->name('routes.store');
-        Route::patch('/routes/{route}',   [RouteController::class, 'update'])->name('routes.update');
-        Route::delete('/routes/{route}',  [RouteController::class, 'destroy'])->name('routes.destroy');
+        Route::get('/routes',                          [RouteController::class, 'index'])->name('routes');
+        Route::post('/routes',                         [RouteController::class, 'store'])->name('routes.store');
+        Route::patch('/routes/{route}',                [RouteController::class, 'update'])->name('routes.update');
+        Route::patch('/routes/{route}/toggle-active',  [RouteController::class, 'toggleActive'])->name('routes.toggle-active');
+        Route::delete('/routes/{route}',               [RouteController::class, 'destroy'])->name('routes.destroy');
     });
     Route::get('/buses',     fn() => view('panel.buses'))->middleware('role:admin,supervisor')->name('buses');
     Route::get('/drivers',   fn() => view('panel.drivers'))->middleware('role:admin,supervisor')->name('drivers');

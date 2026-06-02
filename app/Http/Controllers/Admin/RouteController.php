@@ -102,10 +102,35 @@ class RouteController extends Controller
         return $clean ?: null;
     }
 
+    public function toggleActive(BusRoute $route): RedirectResponse
+    {
+        if ($route->is_active && $this->hasActiveSchedules($route)) {
+            return redirect()->route('panel.routes')
+                ->with('error', "Route \"{$route->name}\" cannot be deactivated while it is assigned to a schedule.");
+        }
+
+        $route->update(['is_active' => ! $route->is_active]);
+
+        $state = $route->is_active ? 'activated' : 'deactivated';
+
+        return redirect()->route('panel.routes')->with('success', "Route \"{$route->name}\" has been {$state}.");
+    }
+
     public function destroy(BusRoute $route): RedirectResponse
     {
+        if ($this->hasActiveSchedules($route)) {
+            return redirect()->route('panel.routes')
+                ->with('error', "Route \"{$route->name}\" cannot be deleted while it is assigned to a schedule.");
+        }
+
         $route->delete();
 
         return redirect()->route('panel.routes')->with('success', "Route \"{$route->name}\" has been deleted.");
+    }
+
+    private function hasActiveSchedules(BusRoute $route): bool
+    {
+        // Wire up once Schedule model exists: return $route->schedules()->exists();
+        return isset($route) && false;
     }
 }
