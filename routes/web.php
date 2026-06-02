@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BusController;
+use App\Http\Controllers\Admin\DriverController;
 use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
@@ -78,7 +79,13 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
         Route::patch('/buses/{bus}',  [BusController::class, 'update'])->name('buses.update');
         Route::delete('/buses/{bus}', [BusController::class, 'destroy'])->name('buses.destroy');
     });
-    Route::get('/drivers',   fn() => view('panel.drivers'))->middleware('role:admin,supervisor')->name('drivers');
+    // ── Admin and Supervisor (drivers)
+    Route::middleware('role:admin,supervisor')->group(function () {
+        Route::get('/drivers',                            [DriverController::class, 'index'])->name('drivers');
+        Route::post('/drivers',                           [DriverController::class, 'store'])->name('drivers.store');
+        Route::patch('/drivers/{driver}',                 [DriverController::class, 'update'])->name('drivers.update');
+        Route::patch('/drivers/{driver}/toggle-active',   [DriverController::class, 'toggleActive'])->name('drivers.toggle-active');
+    });
     Route::get('/schedules', fn() => view('panel.schedules'))->middleware('role:admin,supervisor')->name('schedules');
 
     // ── All roles
