@@ -40,6 +40,13 @@ class RouteController extends Controller
     {
         $validated = $request->validate($this->rules());
 
+        $newIsActive = $request->boolean('is_active');
+
+        if ($route->is_active && ! $newIsActive && $this->hasActiveSchedules($route)) {
+            return redirect()->route('panel.routes')
+                ->with('error', "Route \"{$route->name}\" cannot be deactivated while it is assigned to a schedule.");
+        }
+
         $route->update([
             'name'            => $validated['name'],
             'origin'          => $validated['origin'],
@@ -50,6 +57,7 @@ class RouteController extends Controller
             'destination_lng' => $validated['destination_lng'] ?? null,
             'stops'           => $this->normalizeStops($validated['stops'] ?? []),
             'distance_km'     => $validated['distance_km'],
+            'is_active'       => $newIsActive,
         ]);
 
         return redirect()->route('panel.routes')->with('success', "Route \"{$route->name}\" has been updated.");
@@ -100,20 +108,6 @@ class RouteController extends Controller
         }
 
         return $clean ?: null;
-    }
-
-    public function toggleActive(BusRoute $route): RedirectResponse
-    {
-        if ($route->is_active && $this->hasActiveSchedules($route)) {
-            return redirect()->route('panel.routes')
-                ->with('error', "Route \"{$route->name}\" cannot be deactivated while it is assigned to a schedule.");
-        }
-
-        $route->update(['is_active' => ! $route->is_active]);
-
-        $state = $route->is_active ? 'activated' : 'deactivated';
-
-        return redirect()->route('panel.routes')->with('success', "Route \"{$route->name}\" has been {$state}.");
     }
 
     public function destroy(BusRoute $route): RedirectResponse

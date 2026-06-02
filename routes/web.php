@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\BusController;
 use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
@@ -65,13 +66,18 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
 
     // ── Admin and Supervisor
     Route::middleware('role:admin,supervisor')->group(function () {
-        Route::get('/routes',                          [RouteController::class, 'index'])->name('routes');
-        Route::post('/routes',                         [RouteController::class, 'store'])->name('routes.store');
-        Route::patch('/routes/{route}',                [RouteController::class, 'update'])->name('routes.update');
-        Route::patch('/routes/{route}/toggle-active',  [RouteController::class, 'toggleActive'])->name('routes.toggle-active');
-        Route::delete('/routes/{route}',               [RouteController::class, 'destroy'])->name('routes.destroy');
+        Route::get('/routes',           [RouteController::class, 'index'])->name('routes');
+        Route::post('/routes',          [RouteController::class, 'store'])->name('routes.store');
+        Route::patch('/routes/{route}', [RouteController::class, 'update'])->name('routes.update');
+        Route::delete('/routes/{route}',[RouteController::class, 'destroy'])->name('routes.destroy');
     });
-    Route::get('/buses',     fn() => view('panel.buses'))->middleware('role:admin,supervisor')->name('buses');
+    // ── Admin and Supervisor (buses)
+    Route::middleware('role:admin,supervisor')->group(function () {
+        Route::get('/buses',          [BusController::class, 'index'])->name('buses');
+        Route::post('/buses',         [BusController::class, 'store'])->name('buses.store');
+        Route::patch('/buses/{bus}',  [BusController::class, 'update'])->name('buses.update');
+        Route::delete('/buses/{bus}', [BusController::class, 'destroy'])->name('buses.destroy');
+    });
     Route::get('/drivers',   fn() => view('panel.drivers'))->middleware('role:admin,supervisor')->name('drivers');
     Route::get('/schedules', fn() => view('panel.schedules'))->middleware('role:admin,supervisor')->name('schedules');
 

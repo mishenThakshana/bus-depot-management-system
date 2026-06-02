@@ -69,7 +69,7 @@
             @endif
           </td>
           <td>
-            <div style="display:flex;align-items:center;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <button
                 class="btn-ghost btn-ghost--sm"
                 onclick="openMapModal({{ json_encode([
@@ -89,13 +89,6 @@
                 </svg>
                 View Map
               </button>
-              <form method="POST" action="{{ route('panel.routes.toggle-active', $route) }}">
-                @csrf
-                @method('PATCH')
-                <button type="submit" class="btn-ghost btn-ghost--sm" style="{{ $route->is_active ? 'color:var(--warning);border-color:var(--warning);' : 'color:var(--success);border-color:var(--success);' }}">
-                  {{ $route->is_active ? 'Deactivate' : 'Activate' }}
-                </button>
-              </form>
               <button
                 class="btn-ghost btn-ghost--sm"
                 onclick="openEditModal({{ json_encode([
@@ -109,6 +102,7 @@
                   'destination_lng' => $route->destination_lng,
                   'stops'           => $route->stops ?? [],
                   'distance_km'     => $route->distance_km,
+                  'is_active'       => $route->is_active,
                 ]) }})"
               >Edit</button>
               <form method="POST" action="{{ route('panel.routes.destroy', $route) }}" onsubmit="return confirm('Delete route \'{{ addslashes($route->name) }}\'?')">
@@ -344,6 +338,17 @@
           <span id="editDistStatus" style="font-size:11px;color:var(--text-muted);margin-top:2px;display:none;"></span>
         </div>
 
+        <div style="margin-top:16px;">
+          <label style="font-size:13px;font-weight:500;color:var(--text);display:block;margin-bottom:8px;">Route Status</label>
+          <label class="toggle-wrap">
+            <span class="toggle-track">
+              <input type="checkbox" id="edit_is_active" name="is_active" value="1" onchange="document.getElementById('edit_active_label').textContent = this.checked ? 'Active' : 'Inactive'" />
+              <span class="toggle-knob"></span>
+            </span>
+            <span id="edit_active_label" style="font-size:13px;color:var(--text);">Active</span>
+          </label>
+        </div>
+
       </div>
 
       <div class="modal-footer">
@@ -413,6 +418,14 @@
 }
 .status-badge--active   { color: var(--success); background: #f0fdf4; border-color: #bbf7d0; }
 .status-badge--inactive { color: var(--text-muted); background: var(--bg); border-color: var(--border); }
+
+.toggle-wrap  { display:inline-flex; align-items:center; gap:10px; cursor:pointer; user-select:none; }
+.toggle-track { position:relative; width:36px; height:20px; flex-shrink:0; }
+.toggle-track input { opacity:0; width:0; height:0; position:absolute; }
+.toggle-knob  { position:absolute; inset:0; background:var(--border); border-radius:20px; transition:background 0.18s; cursor:pointer; }
+.toggle-knob::before { content:''; position:absolute; width:14px; height:14px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform 0.18s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+.toggle-track input:checked + .toggle-knob { background:var(--success); }
+.toggle-track input:checked + .toggle-knob::before { transform:translateX(16px); }
 
 .stop-row {
   display: flex;
@@ -781,6 +794,10 @@
     container.innerHTML = '';
     editStopCounter = 0;
     (route.stops || []).forEach(stop => addEditStop(stop));
+
+    const activeToggle = document.getElementById('edit_is_active');
+    activeToggle.checked = !!route.is_active;
+    document.getElementById('edit_active_label').textContent = route.is_active ? 'Active' : 'Inactive';
 
     // Clear any previous errors
     document.getElementById('editErrors').style.display = 'none';
