@@ -7,7 +7,6 @@ use App\Models\LoginLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password as PasswordRule;
@@ -87,7 +86,7 @@ class AuthController extends Controller
         }
 
         Auth::user()->update([
-            'password'             => Hash::make($request->password),
+            'password'             => $request->password,
             'must_change_password' => false,
         ]);
 
@@ -134,7 +133,7 @@ class AuthController extends Controller
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, string $password) {
                 $user->update([
-                    'password'             => Hash::make($password),
+                    'password'             => $password,
                     'must_change_password' => false,
                 ]);
             }

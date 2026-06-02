@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
@@ -63,7 +64,12 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
     });
 
     // ── Admin and Supervisor
-    Route::get('/routes',    fn() => view('panel.routes'))->middleware('role:admin,supervisor')->name('routes');
+    Route::middleware('role:admin,supervisor')->group(function () {
+        Route::get('/routes',          [RouteController::class, 'index'])->name('routes');
+        Route::post('/routes',            [RouteController::class, 'store'])->name('routes.store');
+        Route::patch('/routes/{route}',   [RouteController::class, 'update'])->name('routes.update');
+        Route::delete('/routes/{route}',  [RouteController::class, 'destroy'])->name('routes.destroy');
+    });
     Route::get('/buses',     fn() => view('panel.buses'))->middleware('role:admin,supervisor')->name('buses');
     Route::get('/drivers',   fn() => view('panel.drivers'))->middleware('role:admin,supervisor')->name('drivers');
     Route::get('/schedules', fn() => view('panel.schedules'))->middleware('role:admin,supervisor')->name('schedules');

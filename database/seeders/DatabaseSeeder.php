@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,13 +18,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create the system admin (idempotent – skip if already exists)
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'admin@depot.com'],
             [
-                'name'     => 'System Admin',
-                'role'     => 'admin',
-                'password' => Hash::make('admin1234'),
+                'name'                => 'System Admin',
+                'role'                => 'admin',
+                'is_active'           => true,
+                'must_change_password' => false,
+                'password'            => 'admin1234',
             ]
         );
     }

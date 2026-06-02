@@ -8,7 +8,6 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -49,7 +48,7 @@ class UserController extends Controller
             'role'                 => $validated['role'],
             'is_active'            => (bool) $validated['is_active'],
             'must_change_password' => true,
-            'password'             => Hash::make($temporaryPassword),
+            'password'             => $temporaryPassword,
         ]);
 
         // Send the welcome e-mail with login credentials.
