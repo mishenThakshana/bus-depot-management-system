@@ -961,6 +961,7 @@ input, select, textarea {
   gap: 8px;
 }
 
+
 @media (max-width: 520px) {
   .guest-card {
     padding: 28px 20px;

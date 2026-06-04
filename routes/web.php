@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\BusController;
 use App\Http\Controllers\Admin\DriverController;
 use App\Http\Controllers\Admin\FuelController;
@@ -118,5 +119,8 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
     Route::get('/fuel-logs',   [FuelController::class, 'staffFuelLogs'])->name('fuel-logs');
     Route::get('/maintenance', [MaintenanceController::class, 'staffIndex'])->name('maintenance');
 
-    Route::get('/reports',     fn() => view('panel.reports'))->name('reports');
+    Route::get('/reports',                    [ReportController::class, 'index'])->name('reports');
+    Route::get('/reports/fuel',               [ReportController::class, 'exportFuel'])->name('reports.fuel');
+    Route::get('/reports/maintenance',        [ReportController::class, 'exportMaintenance'])->name('reports.maintenance');
+    Route::get('/reports/schedule',           [ReportController::class, 'exportSchedule'])->name('reports.schedule');
 });
