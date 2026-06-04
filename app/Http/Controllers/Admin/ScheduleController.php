@@ -80,6 +80,10 @@ class ScheduleController extends Controller
             throw ValidationException::withMessages(['bus_id' => $clash]);
         }
 
+        if ($maintClash = $schedule->firstMaintenanceConflict($dates)) {
+            throw ValidationException::withMessages(['bus_id' => $maintClash]);
+        }
+
         DB::transaction(function () use ($schedule, $dates) {
             $schedule->save();
             $schedule->runs()->delete();

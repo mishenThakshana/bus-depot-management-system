@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\MaintenanceRecord;
 use App\Models\Schedule;
 use App\Models\ScheduleRun;
 use Carbon\Carbon;
@@ -62,6 +63,10 @@ class ScheduleRunController extends Controller
             return back()->with('error', $clash);
         }
 
+        if (MaintenanceRecord::where('bus_id', $schedule->bus_id)->where('serviced_date', $newDate)->exists()) {
+            return back()->with('error', "Bus {$schedule->bus?->registration_number} has a maintenance record on {$formatted} — reschedule or remove it first.");
+        }
+
         $run->update(['run_date' => $newDate]);
 
         return redirect()->route('panel.schedules.runs', $schedule)
@@ -108,6 +113,11 @@ class ScheduleRunController extends Controller
 
         if ($schedule->is_active && $clash = $schedule->firstRunConflict([$date], $schedule->id)) {
             return back()->with('error', $clash);
+        }
+
+        if (MaintenanceRecord::where('bus_id', $schedule->bus_id)->where('serviced_date', $date)->exists()) {
+            $formatted = $run->run_date->format('d M Y');
+            return back()->with('error', "Bus {$schedule->bus?->registration_number} has a maintenance record on {$formatted} — remove it first.");
         }
 
         $run->update(['status' => ScheduleRun::STATUS_SCHEDULED]);

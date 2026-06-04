@@ -69,6 +69,24 @@ class Schedule extends Model
     }
 
     /**
+     * Returns a message if the bus has a maintenance record on any of the given
+     * dates, or null when every date is clear.
+     */
+    public function firstMaintenanceConflict(array $dates): ?string
+    {
+        $record = MaintenanceRecord::where('bus_id', $this->bus_id)
+            ->whereIn('serviced_date', $dates)
+            ->orderBy('serviced_date')
+            ->first();
+
+        if (! $record) {
+            return null;
+        }
+
+        return "Bus {$this->bus?->registration_number} has a maintenance record on {$record->serviced_date->format('d M Y')} — remove it first or choose a different date range.";
+    }
+
+    /**
      * Find the first of the given dates on which this schedule's bus or driver
      * is already committed to an overlapping run on another active schedule.
      * Returns a human-readable clash message, or null when every date is free.

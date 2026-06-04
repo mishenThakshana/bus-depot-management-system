@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BusController;
 use App\Http\Controllers\Admin\DriverController;
+use App\Http\Controllers\Admin\FuelController;
+use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\ScheduleController;
 use App\Http\Controllers\Admin\ScheduleRunController;
@@ -100,10 +102,21 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
         Route::patch('/schedules/{schedule}/runs/{run}/reactivate', [ScheduleRunController::class, 'reactivate'])->name('schedules.runs.reactivate');
     });
 
-    // ── All roles
-    Route::get('/trips',       fn() => view('panel.trips'))->name('trips');
-    Route::get('/fuel',        fn() => view('panel.fuel'))->name('fuel');
-    Route::get('/fuel-logs',   fn() => view('panel.fuel-logs'))->name('fuel-logs');
-    Route::get('/maintenance', fn() => view('panel.maintenance'))->name('maintenance');
+    // ── Fuel & Maintenance — Admin/Supervisor (full CRUD)
+    Route::middleware('role:admin,supervisor')->group(function () {
+        Route::get('/fuel',                               [FuelController::class, 'index'])->name('fuel');
+        Route::post('/fuel',                              [FuelController::class, 'store'])->name('fuel.store');
+        Route::patch('/fuel/{fuelLog}',                   [FuelController::class, 'update'])->name('fuel.update');
+        Route::delete('/fuel/{fuelLog}',                  [FuelController::class, 'destroy'])->name('fuel.destroy');
+
+        Route::post('/maintenance',                            [MaintenanceController::class, 'store'])->name('maintenance.store');
+        Route::patch('/maintenance/{maintenanceRecord}',       [MaintenanceController::class, 'update'])->name('maintenance.update');
+        Route::delete('/maintenance/{maintenanceRecord}',      [MaintenanceController::class, 'destroy'])->name('maintenance.destroy');
+    });
+
+    // ── Fuel & Maintenance — Staff (read-only views)
+    Route::get('/fuel-logs',   [FuelController::class, 'staffFuelLogs'])->name('fuel-logs');
+    Route::get('/maintenance', [MaintenanceController::class, 'staffIndex'])->name('maintenance');
+
     Route::get('/reports',     fn() => view('panel.reports'))->name('reports');
 });

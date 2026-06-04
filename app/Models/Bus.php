@@ -37,4 +37,14 @@ class Bus extends Model
     {
         return $this->hasMany(Schedule::class);
     }
+
+    public function fuelLogs(): HasMany
+    {
+        return $this->hasMany(FuelLog::class);
+    }
+
+    public function maintenanceRecords(): HasMany
+    {
+        return $this->hasMany(MaintenanceRecord::class);
+    }
 }
