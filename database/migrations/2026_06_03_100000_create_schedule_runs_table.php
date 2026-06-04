@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('schedule_id')->constrained()->cascadeOnDelete();
             $table->date('run_date')->index();
+            $table->string('status')->default('scheduled')->index();
             $table->timestamps();
 
             // One run per schedule per date.

@@ -15,7 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('origin');
+            $table->decimal('origin_lat', 10, 7)->nullable();
+            $table->decimal('origin_lng', 10, 7)->nullable();
             $table->string('destination');
+            $table->decimal('destination_lat', 10, 7)->nullable();
+            $table->decimal('destination_lng', 10, 7)->nullable();
             $table->json('stops')->nullable();
             $table->decimal('distance_km', 8, 2);
             $table->boolean('is_active')->default(true);

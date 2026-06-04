@@ -17,10 +17,6 @@ return new class extends Migration
             $table->string('maintenance_type');
             $table->text('description');
             $table->date('serviced_date');
-            $table->decimal('cost', 10, 2)->nullable();
-            $table->string('technician')->nullable();
-            $table->enum('status', ['scheduled', 'completed'])->default('scheduled');
-            $table->date('next_service_date')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });
