@@ -668,6 +668,18 @@ input, select, textarea {
   color: var(--text);
 }
 
+.table-action {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.table-action:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;

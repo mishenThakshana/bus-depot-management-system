@@ -13,86 +13,191 @@
 {{-- Stats --}}
 <div class="stats-grid">
   <div class="stat-card">
-    <div class="stat-label">Active Buses</div>
-    <div class="stat-value">24</div>
-    <div class="stat-change stat-change--up">↑ 2 from yesterday</div>
+    <div class="stat-label">Buses in Service</div>
+    <div class="stat-value" style="color:var(--accent);">{{ $inServiceBuses }}</div>
+    <div class="stat-change">of {{ $totalBuses }} total</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Drivers on Duty</div>
-    <div class="stat-value">18</div>
-    <div class="stat-change">of 22 total</div>
+    <div class="stat-label">Active Drivers</div>
+    <div class="stat-value" style="color:var(--accent);">{{ $activeDrivers }}</div>
+    <div class="stat-change">of {{ $totalDrivers }} total</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Trips Today</div>
-    <div class="stat-value">61</div>
-    <div class="stat-change stat-change--up">↑ 5 from yesterday</div>
+    <div class="stat-label">Runs Today</div>
+    <div class="stat-value" style="color:var(--accent);">{{ $todayScheduled }}</div>
+    <div class="stat-change">{{ $todayCancelled }} cancelled</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Incidents</div>
-    <div class="stat-value">1</div>
-    <div class="stat-change stat-change--down">↑ 1 open</div>
+    <div class="stat-label">Off-Service Buses</div>
+    <div class="stat-value" style="color:var(--accent);">{{ $totalBuses - $inServiceBuses }}</div>
+    <div class="stat-change">of {{ $totalBuses }} total</div>
   </div>
 </div>
 
-{{-- Recent Trips table --}}
-<div class="table-wrapper">
-  <div class="table-header">
-    <span class="table-title">Recent Trips</span>
+{{-- Two column layout --}}
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:0;">
+
+  {{-- Today's Runs --}}
+  <div class="table-wrapper">
+    <div class="table-header">
+      <span class="table-title">Today's Runs</span>
+      <a href="{{ route('panel.schedules') }}" class="table-action">View all</a>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Route</th>
+          <th>Bus</th>
+          <th>Driver</th>
+          <th>Departure</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse($todayRuns as $run)
+        <tr>
+          <td>{{ $run->schedule->route->name ?? '—' }}</td>
+          <td style="color:var(--text-muted);font-size:12px;">{{ $run->schedule->bus->registration_number ?? '—' }}</td>
+          <td>{{ $run->schedule->driver->name ?? '—' }}</td>
+          <td style="color:var(--text-muted);font-size:12px;">{{ \Carbon\Carbon::parse($run->schedule->departure_time)->format('h:i A') }}</td>
+          <td>
+            @if($run->status === 'scheduled')
+              <span class="badge badge--green">Scheduled</span>
+            @else
+              <span class="badge badge--red">Cancelled</span>
+            @endif
+          </td>
+        </tr>
+        @empty
+        <tr>
+          <td colspan="5" style="text-align:center; color:var(--text-muted); padding:24px;">No runs scheduled for today.</td>
+        </tr>
+        @endforelse
+      </tbody>
+    </table>
   </div>
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Trip ID</th>
-        <th>Route</th>
-        <th>Bus</th>
-        <th>Driver</th>
-        <th>Departed</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td style="color:var(--text-muted);font-size:12px;">#TRP-0041</td>
-        <td>Route 12 — City Centre</td>
-        <td>BUS-07</td>
-        <td>D. Perera</td>
-        <td style="color:var(--text-muted);font-size:12px;">08:15 AM</td>
-        <td><span class="badge badge--green">Completed</span></td>
-      </tr>
-      <tr>
-        <td style="color:var(--text-muted);font-size:12px;">#TRP-0042</td>
-        <td>Route 04 — Airport Rd</td>
-        <td>BUS-12</td>
-        <td>K. Fernando</td>
-        <td style="color:var(--text-muted);font-size:12px;">09:00 AM</td>
-        <td><span class="badge badge--blue">In Progress</span></td>
-      </tr>
-      <tr>
-        <td style="color:var(--text-muted);font-size:12px;">#TRP-0043</td>
-        <td>Route 07 — Suburb Loop</td>
-        <td>BUS-03</td>
-        <td>S. Ranasinghe</td>
-        <td style="color:var(--text-muted);font-size:12px;">09:30 AM</td>
-        <td><span class="badge badge--amber">Delayed</span></td>
-      </tr>
-      <tr>
-        <td style="color:var(--text-muted);font-size:12px;">#TRP-0044</td>
-        <td>Route 02 — North Terminal</td>
-        <td>BUS-19</td>
-        <td>A. Silva</td>
-        <td style="color:var(--text-muted);font-size:12px;">10:00 AM</td>
-        <td><span class="badge">Scheduled</span></td>
-      </tr>
-      <tr>
-        <td style="color:var(--text-muted);font-size:12px;">#TRP-0045</td>
-        <td>Route 09 — Harbour View</td>
-        <td>BUS-05</td>
-        <td>N. Jayawardena</td>
-        <td style="color:var(--text-muted);font-size:12px;">10:45 AM</td>
-        <td><span class="badge badge--red">Cancelled</span></td>
-      </tr>
-    </tbody>
-  </table>
+
+  {{-- Recent Activity --}}
+  <div class="table-wrapper">
+    <div class="table-header">
+      <span class="table-title">Recent Activity</span>
+      <a href="{{ route('panel.audit-log') }}" class="table-action">View all</a>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Action</th>
+          <th>Subject</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse($recentActivity as $log)
+        <tr>
+          <td style="font-size:12px;">{{ $log->user_name }}</td>
+          <td style="font-size:12px; color:var(--text-muted);">{{ ucfirst($log->action) }}</td>
+          <td style="font-size:12px;">{{ $log->subject_label }}</td>
+          <td style="color:var(--text-muted);font-size:11px;">{{ $log->created_at->diffForHumans() }}</td>
+        </tr>
+        @empty
+        <tr>
+          <td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">No recent activity.</td>
+        </tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+{{-- Alerts row --}}
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:20px;">
+
+  {{-- Upcoming Maintenance --}}
+  <div class="table-wrapper">
+    <div class="table-header">
+      <span class="table-title">Upcoming Maintenance</span>
+      <a href="{{ route('panel.maintenance') }}" class="table-action">View all</a>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Bus</th>
+          <th>Type</th>
+          <th>Scheduled</th>
+          <th>In</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse($upcomingMaintenance as $record)
+        @php $daysUntil = now()->startOfDay()->diffInDays($record->serviced_date, false); @endphp
+        <tr>
+          <td style="font-size:12px;">{{ $record->bus->registration_number ?? '—' }}</td>
+          <td>{{ $record->maintenance_type }}</td>
+          <td style="color:var(--text-muted);font-size:12px;">{{ $record->serviced_date->format('d M Y') }}</td>
+          <td>
+            @if($daysUntil === 0)
+              <span class="badge badge--amber">Today</span>
+            @elseif($daysUntil <= 7)
+              <span class="badge badge--amber">{{ $daysUntil }}d</span>
+            @else
+              <span class="badge">{{ $daysUntil }}d</span>
+            @endif
+          </td>
+        </tr>
+        @empty
+        <tr>
+          <td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">No upcoming maintenance scheduled.</td>
+        </tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
+
+  {{-- Licence Renewals --}}
+  <div class="table-wrapper">
+    <div class="table-header">
+      <span class="table-title">Licence Renewals</span>
+      <a href="{{ route('panel.drivers') }}" class="table-action">View all</a>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Driver</th>
+          <th>Licence No.</th>
+          <th>Expires</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse($licenceRenewals as $driver)
+        @php $daysLeft = now()->startOfDay()->diffInDays($driver->licence_expiry_date, false); @endphp
+        <tr>
+          <td>{{ $driver->name }}</td>
+          <td style="color:var(--text-muted);font-size:12px;">{{ $driver->licence_number }}</td>
+          <td style="font-size:12px;">{{ $driver->licence_expiry_date->format('d M Y') }}</td>
+          <td>
+            @if($daysLeft < 0)
+              <span class="badge badge--red">Expired</span>
+            @elseif($daysLeft <= 14)
+              <span class="badge badge--red">{{ $daysLeft }}d left</span>
+            @elseif($daysLeft <= 30)
+              <span class="badge badge--amber">{{ $daysLeft }}d left</span>
+            @else
+              <span class="badge">{{ $daysLeft }}d left</span>
+            @endif
+          </td>
+        </tr>
+        @empty
+        <tr>
+          <td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">No licences expiring in the next 60 days.</td>
+        </tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
+
 </div>
 
 @endsection

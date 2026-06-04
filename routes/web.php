@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\BusController;
 use App\Http\Controllers\Admin\DriverController;
@@ -58,7 +59,7 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
 
     Route::get('/', fn() => redirect()->route('panel.dashboard'));
 
-    Route::get('/dashboard', fn() => view('panel.dashboard'))
+    Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
     // ── Admin-only
