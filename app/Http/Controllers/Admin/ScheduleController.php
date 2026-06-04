@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Bus;
 use App\Models\BusRoute;
 use App\Models\Driver;
@@ -35,6 +36,8 @@ class ScheduleController extends Controller
 
         $this->persist(new Schedule(), $validated);
 
+        ActivityLog::record('schedules', 'created', 'New schedule created');
+
         return redirect()->route('panel.schedules')
             ->with('success', 'Schedule has been created.');
     }
@@ -44,22 +47,17 @@ class ScheduleController extends Controller
         $validated = $request->validate($this->rules($request));
         $validated['is_active'] = $request->boolean('is_active');
 
+        $label = "Schedule #{$schedule->id} ({$schedule->route?->name})";
         $this->persist($schedule, $validated);
+
+        ActivityLog::record('schedules', 'updated', "{$label} updated");
 
         return redirect()->route('panel.schedules')
             ->with('success', 'Schedule has been updated.');
     }
 
-    /**
-     * Save a schedule and (re)generate its concrete dated runs. The frequency
-     * is expanded into real dates, those dates are checked for a bus/driver
-     * clash with other live schedules, and only then is everything written in
-     * a single transaction so a schedule and its runs never drift apart.
-     */
     private function persist(Schedule $schedule, array $validated): void
     {
-        // Weekday selection only makes sense for weekly schedules; daily ones
-        // run every day, so never carry a stale list of days.
         if (($validated['frequency'] ?? null) !== 'weekly') {
             $validated['days_of_week'] = null;
         } else {
@@ -93,11 +91,6 @@ class ScheduleController extends Controller
         });
     }
 
-    /**
-     * Shared validation rules. A schedule can only use an active route, an
-     * in-service bus, and an active driver; the arrival must be after the
-     * departure, and the date range must end on or after it begins.
-     */
     private function rules(Request $request): array
     {
         $isWeekly = $request->input('frequency') === 'weekly';

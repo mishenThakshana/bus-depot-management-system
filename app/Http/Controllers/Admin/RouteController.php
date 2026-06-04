@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\BusRoute;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,6 +34,8 @@ class RouteController extends Controller
             'distance_km'     => $validated['distance_km'],
         ]);
 
+        ActivityLog::record('routes', 'created', "Route \"{$validated['name']}\" created");
+
         return redirect()->route('panel.routes')->with('success', "Route \"{$validated['name']}\" has been created.");
     }
 
@@ -60,14 +63,11 @@ class RouteController extends Controller
             'is_active'       => $newIsActive,
         ]);
 
+        ActivityLog::record('routes', 'updated', "Route \"{$route->name}\" updated");
+
         return redirect()->route('panel.routes')->with('success', "Route \"{$route->name}\" has been updated.");
     }
 
-    /**
-     * Shared validation rules for storing/updating a route. Coordinates are
-     * optional so a manually-typed location still works, but when present they
-     * must fall within valid lat/lng ranges.
-     */
     private function rules(): array
     {
         return [
@@ -86,10 +86,6 @@ class RouteController extends Controller
         ];
     }
 
-    /**
-     * Drop empty stop rows and keep each one as {name, lat, lng}. Coordinates
-     * are cast to float (or null) so the map can plot the exact picked point.
-     */
     private function normalizeStops(array $stops): ?array
     {
         $clean = [];
@@ -117,9 +113,12 @@ class RouteController extends Controller
                 ->with('error', "Route \"{$route->name}\" cannot be deleted while it is assigned to a schedule.");
         }
 
+        $name = $route->name;
         $route->delete();
 
-        return redirect()->route('panel.routes')->with('success', "Route \"{$route->name}\" has been deleted.");
+        ActivityLog::record('routes', 'deleted', "Route \"{$name}\" deleted");
+
+        return redirect()->route('panel.routes')->with('success', "Route \"{$name}\" has been deleted.");
     }
 
     private function hasActiveSchedules(BusRoute $route): bool

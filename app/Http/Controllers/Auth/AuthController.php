@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\LoginLog;
+use App\Models\ActivityLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,17 +13,11 @@ use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class AuthController extends Controller
 {
-    /**
-     * Show the login form.
-     */
     public function showLogin(): \Illuminate\View\View
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle a login request.
-     */
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
@@ -32,7 +26,6 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            // Reject inactive accounts immediately after auth
             if (! Auth::user()->isActive()) {
                 Auth::logout();
                 $request->session()->invalidate();
@@ -46,7 +39,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $request->session()->put('last_activity', now());
 
-            LoginLog::record(Auth::user(), 'login', $request->ip());
+            ActivityLog::record('login', 'login', 'Logged in');
 
             if (Auth::user()->must_change_password) {
                 return redirect()->route('password.change');
@@ -60,9 +53,6 @@ class AuthController extends Controller
             ->withErrors(['email' => 'These credentials do not match our records.']);
     }
 
-    /**
-     * Show the forced password-change page.
-     */
     public function showChangePassword(): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
     {
         if (! Auth::user()->must_change_password) {
@@ -72,9 +62,6 @@ class AuthController extends Controller
         return view('auth.change-password');
     }
 
-    /**
-     * Handle the forced password-change submission.
-     */
     public function changePassword(Request $request): RedirectResponse
     {
         $validator = Validator::make($request->all(), [
@@ -95,9 +82,6 @@ class AuthController extends Controller
             ->with('success', 'Password updated. Welcome!');
     }
 
-    /**
-     * Send a password reset link to the given email.
-     */
     public function sendResetLink(Request $request): RedirectResponse
     {
         $request->validate(['email' => ['required', 'email']]);
@@ -107,9 +91,6 @@ class AuthController extends Controller
         return back()->with('status', __($status));
     }
 
-    /**
-     * Show the password reset form.
-     */
     public function showResetPassword(Request $request, string $token): \Illuminate\View\View
     {
         return view('auth.reset-password', [
@@ -118,9 +99,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Handle the password reset submission.
-     */
     public function resetPassword(Request $request): RedirectResponse
     {
         $request->validate([
@@ -149,13 +127,10 @@ class AuthController extends Controller
             ->withErrors(['email' => __($status)]);
     }
 
-    /**
-     * Log the user out.
-     */
     public function logout(Request $request): RedirectResponse
     {
         if (Auth::check()) {
-            LoginLog::record(Auth::user(), 'logout', $request->ip());
+            ActivityLog::record('login', 'logout', 'Logged out');
         }
 
         Auth::logout();

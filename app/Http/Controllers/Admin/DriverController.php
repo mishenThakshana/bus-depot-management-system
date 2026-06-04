@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Driver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,8 @@ class DriverController extends Controller
 
         Driver::create($validated);
 
+        ActivityLog::record('drivers', 'created', "Driver \"{$validated['name']}\" added");
+
         return redirect()->route('panel.drivers')
             ->with('success', "Driver \"{$validated['name']}\" has been added.");
     }
@@ -34,6 +37,8 @@ class DriverController extends Controller
 
         $driver->update($validated);
 
+        ActivityLog::record('drivers', 'updated', "Driver \"{$driver->name}\" updated");
+
         return redirect()->route('panel.drivers')
             ->with('success', "Driver \"{$driver->name}\" has been updated.");
     }
@@ -43,6 +48,8 @@ class DriverController extends Controller
         $driver->update(['is_active' => ! $driver->is_active]);
 
         $label = $driver->is_active ? 'activated' : 'deactivated';
+
+        ActivityLog::record('drivers', $label, "Driver \"{$driver->name}\" {$label}");
 
         return redirect()->route('panel.drivers')
             ->with('success', "Driver \"{$driver->name}\" has been {$label}.");

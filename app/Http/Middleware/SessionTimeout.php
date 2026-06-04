@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\LoginLog;
+use App\Models\ActivityLog;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,9 +18,7 @@ class SessionTimeout
             $lastActivity = $request->session()->get('last_activity');
 
             if ($lastActivity && now()->diffInMinutes($lastActivity) >= self::TIMEOUT_MINUTES) {
-                $user = Auth::user();
-
-                LoginLog::record($user, 'auto_logout', $request->ip());
+                ActivityLog::record('login', 'auto_logout', 'Session timed out after 30 minutes of inactivity');
 
                 Auth::logout();
                 $request->session()->invalidate();

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Bus;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,6 +26,8 @@ class BusController extends Controller
 
         Bus::create($validated);
 
+        ActivityLog::record('buses', 'created', "Bus \"{$validated['registration_number']}\" added");
+
         return redirect()->route('panel.buses')
             ->with('success', "Bus \"{$validated['registration_number']}\" has been added.");
     }
@@ -44,6 +47,8 @@ class BusController extends Controller
         $validated['is_in_service'] = $newInService;
         $bus->update($validated);
 
+        ActivityLog::record('buses', 'updated', "Bus \"{$bus->registration_number}\" updated");
+
         return redirect()->route('panel.buses')
             ->with('success', "Bus \"{$bus->registration_number}\" has been updated.");
     }
@@ -57,6 +62,8 @@ class BusController extends Controller
 
         $regNumber = $bus->registration_number;
         $bus->delete();
+
+        ActivityLog::record('buses', 'deleted', "Bus \"{$regNumber}\" removed");
 
         return redirect()->route('panel.buses')
             ->with('success', "Bus \"{$regNumber}\" has been removed from the system.");

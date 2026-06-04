@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\MaintenanceRecord;
 use App\Models\ScheduleRun;
 use Illuminate\Http\RedirectResponse;
@@ -25,7 +26,10 @@ class MaintenanceController extends Controller
 
         $this->assertNoScheduleConflict($validated['bus_id'], $validated['serviced_date']);
 
-        MaintenanceRecord::create($validated);
+        $record = MaintenanceRecord::create($validated);
+        $record->load('bus');
+
+        ActivityLog::record('maintenance', 'created', "{$record->maintenance_type} maintenance logged for bus {$record->bus?->registration_number} on " . \Carbon\Carbon::parse($validated['serviced_date'])->format('d M Y'));
 
         return redirect()->route('panel.fuel', ['tab' => 'maintenance'])
             ->with('success', 'Maintenance record has been created.');
@@ -44,6 +48,9 @@ class MaintenanceController extends Controller
         $this->assertNoScheduleConflict($validated['bus_id'], $validated['serviced_date']);
 
         $maintenanceRecord->update($validated);
+        $maintenanceRecord->load('bus');
+
+        ActivityLog::record('maintenance', 'updated', "{$maintenanceRecord->maintenance_type} maintenance updated for bus {$maintenanceRecord->bus?->registration_number} on " . \Carbon\Carbon::parse($validated['serviced_date'])->format('d M Y'));
 
         return redirect()->route('panel.fuel', ['tab' => 'maintenance'])
             ->with('success', 'Maintenance record has been updated.');
@@ -68,7 +75,11 @@ class MaintenanceController extends Controller
 
     public function destroy(MaintenanceRecord $maintenanceRecord): RedirectResponse
     {
+        $maintenanceRecord->load('bus');
+        $label = "{$maintenanceRecord->maintenance_type} maintenance for bus {$maintenanceRecord->bus?->registration_number} on {$maintenanceRecord->serviced_date->format('d M Y')}";
         $maintenanceRecord->delete();
+
+        ActivityLog::record('maintenance', 'deleted', "{$label} deleted");
 
         return redirect()->route('panel.fuel', ['tab' => 'maintenance'])
             ->with('success', 'Maintenance record has been removed.');

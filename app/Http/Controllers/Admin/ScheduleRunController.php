@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\MaintenanceRecord;
 use App\Models\Schedule;
 use App\Models\ScheduleRun;
@@ -13,17 +14,12 @@ use Illuminate\View\View;
 
 class ScheduleRunController extends Controller
 {
-    /**
-     * List every dated run for one schedule, oldest first, so an operator can
-     * cancel or reschedule individual dates without touching the recurring rule.
-     */
     public function index(Schedule $schedule): View
     {
         $schedule->load(['route', 'bus', 'driver']);
 
         $runs = $schedule->runs()->orderBy('run_date')->paginate(20);
 
-        // A lightweight, unpaginated view of every date for the calendar.
         $calendar = $schedule->runs()->orderBy('run_date')->get(['id', 'run_date', 'status'])
             ->map(fn (ScheduleRun $run) => [
                 'id'        => $run->id,
@@ -35,11 +31,6 @@ class ScheduleRunController extends Controller
         return view('panel.schedule-runs', compact('schedule', 'runs', 'calendar'));
     }
 
-    /**
-     * Move a single run to a new date. Only future (or today's) runs can move,
-     * the new date must not already be taken by this schedule, and the bus and
-     * driver must be free on that date — the same clash rule as schedule creation.
-     */
     public function reschedule(Request $request, Schedule $schedule, ScheduleRun $run): RedirectResponse
     {
         abort_unless($run->schedule_id === $schedule->id, 404);
@@ -67,17 +58,15 @@ class ScheduleRunController extends Controller
             return back()->with('error', "Bus {$schedule->bus?->registration_number} has a maintenance record on {$formatted} — reschedule or remove it first.");
         }
 
+        $oldFormatted = $run->run_date->format('d M Y');
         $run->update(['run_date' => $newDate]);
+
+        ActivityLog::record('schedule_runs', 'rescheduled', "Schedule #{$schedule->id} run moved from {$oldFormatted} to {$formatted}");
 
         return redirect()->route('panel.schedules.runs', $schedule)
             ->with('success', "Run moved to {$formatted}.");
     }
 
-    /**
-     * Cancel a single run. The row is kept and merely marked cancelled, so it
-     * stays in the history, frees the slot for other schedules, and can be
-     * reactivated later. Only future (or today's) runs may be cancelled.
-     */
     public function cancel(Schedule $schedule, ScheduleRun $run): RedirectResponse
     {
         abort_unless($run->schedule_id === $schedule->id, 404);
@@ -88,15 +77,12 @@ class ScheduleRunController extends Controller
 
         $run->update(['status' => ScheduleRun::STATUS_CANCELLED]);
 
+        ActivityLog::record('schedule_runs', 'cancelled', "Schedule #{$schedule->id} run on {$run->run_date->format('d M Y')} cancelled");
+
         return redirect()->route('panel.schedules.runs', $schedule)
             ->with('success', "Run on {$run->run_date->format('d M Y')} has been cancelled.");
     }
 
-    /**
-     * Bring a cancelled run back. The slot may have been taken by another
-     * schedule while it was cancelled, so re-run the same clash check before
-     * marking it live again. Only future (or today's) runs may be reactivated.
-     */
     public function reactivate(Schedule $schedule, ScheduleRun $run): RedirectResponse
     {
         abort_unless($run->schedule_id === $schedule->id, 404);
@@ -121,6 +107,8 @@ class ScheduleRunController extends Controller
         }
 
         $run->update(['status' => ScheduleRun::STATUS_SCHEDULED]);
+
+        ActivityLog::record('schedule_runs', 'reactivated', "Schedule #{$schedule->id} run on {$run->run_date->format('d M Y')} reactivated");
 
         return redirect()->route('panel.schedules.runs', $schedule)
             ->with('success', "Run on {$run->run_date->format('d M Y')} has been reactivated.");
