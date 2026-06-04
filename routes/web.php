@@ -116,10 +116,6 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
         Route::delete('/maintenance/{maintenanceRecord}',      [MaintenanceController::class, 'destroy'])->name('maintenance.destroy');
     });
 
-    // ── Fuel & Maintenance — Staff (read-only views)
-    Route::get('/fuel-logs',   [FuelController::class, 'staffFuelLogs'])->name('fuel-logs');
-    Route::get('/maintenance', [MaintenanceController::class, 'staffIndex'])->name('maintenance');
-
     Route::get('/reports',                    [ReportController::class, 'index'])->name('reports');
     Route::get('/reports/fuel',               [ReportController::class, 'exportFuel'])->name('reports.fuel');
     Route::get('/reports/maintenance',        [ReportController::class, 'exportMaintenance'])->name('reports.maintenance');

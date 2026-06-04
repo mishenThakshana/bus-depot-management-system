@@ -118,7 +118,7 @@
   <div class="table-wrapper">
     <div class="table-header">
       <span class="table-title">Upcoming Maintenance</span>
-      <a href="{{ route('panel.maintenance') }}" class="table-action">View all</a>
+      <a href="{{ route('panel.fuel', ['tab' => 'maintenance']) }}" class="table-action">View all</a>
     </div>
     <table class="data-table">
       <thead>

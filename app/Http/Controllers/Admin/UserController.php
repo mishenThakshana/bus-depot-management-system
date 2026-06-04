@@ -30,7 +30,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name'      => ['required', 'string', 'max:255'],
             'email'     => ['required', 'email', 'max:255', 'unique:users,email'],
-            'role'      => ['required', 'in:supervisor,staff'],
+            'role'      => ['required', 'in:supervisor'],
             'is_active' => ['required', 'in:1,0'],
         ]);
 

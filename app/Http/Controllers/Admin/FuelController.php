@@ -88,15 +88,4 @@ class FuelController extends Controller
             ->with('success', 'Fuel log has been removed.');
     }
 
-    public function staffFuelLogs(): View
-    {
-        $fuelLogs = FuelLog::with(['bus', 'driver'])
-            ->latest('fuel_date')->latest('id')
-            ->paginate(15);
-
-        $buses   = Bus::orderBy('registration_number')->get();
-        $drivers = Driver::where('is_active', true)->orderBy('name')->get();
-
-        return view('panel.fuel-logs', compact('fuelLogs', 'buses', 'drivers'));
-    }
 }

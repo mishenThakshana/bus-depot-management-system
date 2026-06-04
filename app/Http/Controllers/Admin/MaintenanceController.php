@@ -85,12 +85,4 @@ class MaintenanceController extends Controller
             ->with('success', 'Maintenance record has been removed.');
     }
 
-    public function staffIndex(): View
-    {
-        $records = MaintenanceRecord::with('bus')
-            ->latest('serviced_date')->latest('id')
-            ->paginate(15);
-
-        return view('panel.maintenance', compact('records'));
-    }
 }

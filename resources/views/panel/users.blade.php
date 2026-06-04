@@ -61,8 +61,6 @@
           <td>
             @if ($user->role === 'supervisor')
               <span class="badge badge--blue">Supervisor</span>
-            @elseif ($user->role === 'staff')
-              <span class="badge badge--green">Staff</span>
             @else
               <span class="badge">{{ $user->getRoleLabel() }}</span>
             @endif
@@ -192,7 +190,6 @@
           <select id="role" name="role" required>
             <option value="" disabled {{ old('role') ? '' : 'selected' }}>Select a role…</option>
             <option value="supervisor" {{ old('role') === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-            <option value="staff"      {{ old('role') === 'staff'      ? 'selected' : '' }}>Depot Staff</option>
           </select>
         </div>
 

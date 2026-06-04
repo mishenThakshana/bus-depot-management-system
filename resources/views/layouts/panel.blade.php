@@ -208,38 +208,6 @@
         </div>{{-- /nav-supervisor --}}
 
 
-        {{-- ── STAFF NAV ── --}}
-        <div class="sidebar-nav-group {{ auth()->user()->isStaff() ? 'is-active' : '' }}" id="nav-staff">
-
-          <a href="{{ route('panel.dashboard') }}" class="nav-item {{ request()->routeIs('panel.dashboard') ? 'is-active' : '' }}">
-            <span class="nav-item-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-              </svg>
-            </span>
-            <span class="nav-item-text">Dashboard</span>
-          </a>
-
-          <a href="{{ route('panel.fuel-logs') }}" class="nav-item {{ request()->routeIs('panel.fuel-logs') ? 'is-active' : '' }}">
-            <span class="nav-item-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 22V8a2 2 0 0 1 2-2h4M21 22V8a2 2 0 0 0-2-2h-4"/><path d="M12 22V4"/><path d="M12 4a3 3 0 0 1 3-3"/><path d="M9 4a3 3 0 0 0-3-3"/>
-              </svg>
-            </span>
-            <span class="nav-item-text">Fuel Logs</span>
-          </a>
-
-          <a href="{{ route('panel.maintenance') }}" class="nav-item {{ request()->routeIs('panel.maintenance') ? 'is-active' : '' }}">
-            <span class="nav-item-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-              </svg>
-            </span>
-            <span class="nav-item-text">Maintenance Logs</span>
-          </a>
-
-        </div>{{-- /nav-staff --}}
-
       </nav>
     </aside>
 

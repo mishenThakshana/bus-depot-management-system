@@ -44,11 +44,6 @@ class User extends Authenticatable
         return $this->role === 'supervisor';
     }
 
-    public function isStaff(): bool
-    {
-        return $this->role === 'staff';
-    }
-
     public function isActive(): bool
     {
         return (bool) $this->is_active;
@@ -59,7 +54,6 @@ class User extends Authenticatable
         return match ($this->role) {
             'admin'      => 'Administrator',
             'supervisor' => 'Supervisor',
-            'staff'      => 'Depot Staff',
             default      => ucfirst($this->role),
         };
     }
@@ -69,7 +63,6 @@ class User extends Authenticatable
         return match ($this->role) {
             'admin'      => 'A',
             'supervisor' => 'S',
-            'staff'      => 'D',
             default      => strtoupper($this->role[0]),
         };
     }

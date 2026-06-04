@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      *
-     * Creates the default admin account. Supervisor and staff accounts
+     * Creates the default admin account. Supervisor accounts
      * are created by the admin from within the panel.
      */
     public function run(): void
