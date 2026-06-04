@@ -7,7 +7,6 @@ use App\Models\Bus;
 use App\Models\BusRoute;
 use App\Models\Driver;
 use App\Models\Schedule;
-use App\Models\ScheduleRun;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -77,7 +76,7 @@ class ScheduleController extends Controller
             ]);
         }
 
-        if ($clash = $this->firstConflict($schedule, $dates, $schedule->exists ? $schedule->id : null)) {
+        if ($clash = $schedule->firstRunConflict($dates, $schedule->exists ? $schedule->id : null)) {
             throw ValidationException::withMessages(['bus_id' => $clash]);
         }
 
@@ -88,49 +87,6 @@ class ScheduleController extends Controller
                 array_map(fn ($date) => ['run_date' => $date], $dates)
             );
         });
-    }
-
-    /**
-     * Find the first date on which this schedule's bus or driver is already
-     * committed to an overlapping run on another active schedule. Returns a
-     * human-readable clash message, or null when the slot is free.
-     *
-     * Two runs overlap when each starts before the other one ends. Times are
-     * normalised to 'HH:MM:00' so a window that merely touches another at a
-     * boundary (e.g. 09:00 arrival vs 09:00 departure) is not treated as a clash.
-     */
-    private function firstConflict(Schedule $schedule, array $dates, ?int $excludeId): ?string
-    {
-        $departure = substr($schedule->departure_time, 0, 5) . ':00';
-        $arrival   = substr($schedule->arrival_time, 0, 5) . ':00';
-        $busId     = $schedule->bus_id;
-        $driverId  = $schedule->driver_id;
-
-        $run = ScheduleRun::query()
-            ->whereIn('run_date', $dates)
-            ->whereHas('schedule', function ($q) use ($busId, $driverId, $departure, $arrival, $excludeId) {
-                $q->where('is_active', true)
-                    ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
-                    ->where(fn ($q) => $q->where('bus_id', $busId)->orWhere('driver_id', $driverId))
-                    ->where('departure_time', '<', $arrival)
-                    ->where('arrival_time', '>', $departure);
-            })
-            ->with('schedule.bus', 'schedule.driver')
-            ->orderBy('run_date')
-            ->first();
-
-        if (! $run) {
-            return null;
-        }
-
-        $other = $run->schedule;
-        $date  = $run->run_date->format('d M Y');
-
-        if ($other->bus_id === $busId) {
-            return "Bus {$other->bus?->registration_number} is already allocated to an overlapping run on {$date}.";
-        }
-
-        return "Driver {$other->driver?->name} is already allocated to an overlapping run on {$date}.";
     }
 
     /**

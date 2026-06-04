@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\BusController;
 use App\Http\Controllers\Admin\DriverController;
 use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\ScheduleController;
+use App\Http\Controllers\Admin\ScheduleRunController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
@@ -92,6 +93,11 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
         Route::get('/schedules',              [ScheduleController::class, 'index'])->name('schedules');
         Route::post('/schedules',             [ScheduleController::class, 'store'])->name('schedules.store');
         Route::patch('/schedules/{schedule}', [ScheduleController::class, 'update'])->name('schedules.update');
+
+        Route::get('/schedules/{schedule}/runs',                    [ScheduleRunController::class, 'index'])->name('schedules.runs');
+        Route::patch('/schedules/{schedule}/runs/{run}',            [ScheduleRunController::class, 'reschedule'])->name('schedules.runs.reschedule');
+        Route::patch('/schedules/{schedule}/runs/{run}/cancel',     [ScheduleRunController::class, 'cancel'])->name('schedules.runs.cancel');
+        Route::patch('/schedules/{schedule}/runs/{run}/reactivate', [ScheduleRunController::class, 'reactivate'])->name('schedules.runs.reactivate');
     });
 
     // ── All roles

@@ -97,7 +97,11 @@
               <span class="status-badge status-badge--inactive">Inactive</span>
             @endif
           </td>
-          <td>
+          <td style="white-space:nowrap;">
+            <button
+              class="btn-ghost btn-ghost--sm"
+              onclick="window.location='{{ route('panel.schedules.runs', $schedule) }}'"
+            >Schedule</button>
             <button
               class="btn-ghost btn-ghost--sm"
               onclick="openEditModal({{ json_encode([

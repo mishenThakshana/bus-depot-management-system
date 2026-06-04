@@ -69,6 +69,54 @@ class Schedule extends Model
     }
 
     /**
+     * Find the first of the given dates on which this schedule's bus or driver
+     * is already committed to an overlapping run on another active schedule.
+     * Returns a human-readable clash message, or null when every date is free.
+     *
+     * Two runs overlap when each starts before the other one ends. Times are
+     * normalised to 'HH:MM:00' so a window that merely touches another at a
+     * boundary (e.g. 09:00 arrival vs 09:00 departure) is not treated as a clash.
+     *
+     * $excludeId skips a schedule (its own id on update / reschedule) so a
+     * schedule is never reported as clashing with itself. Cancelled runs are
+     * ignored — a cancelled slot is free for any schedule to take.
+     */
+    public function firstRunConflict(array $dates, ?int $excludeId = null): ?string
+    {
+        $departure = substr($this->departure_time, 0, 5) . ':00';
+        $arrival   = substr($this->arrival_time, 0, 5) . ':00';
+        $busId     = $this->bus_id;
+        $driverId  = $this->driver_id;
+
+        $run = ScheduleRun::query()
+            ->scheduled()
+            ->whereIn('run_date', $dates)
+            ->whereHas('schedule', function ($q) use ($busId, $driverId, $departure, $arrival, $excludeId) {
+                $q->where('is_active', true)
+                    ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
+                    ->where(fn ($q) => $q->where('bus_id', $busId)->orWhere('driver_id', $driverId))
+                    ->where('departure_time', '<', $arrival)
+                    ->where('arrival_time', '>', $departure);
+            })
+            ->with('schedule.bus', 'schedule.driver')
+            ->orderBy('run_date')
+            ->first();
+
+        if (! $run) {
+            return null;
+        }
+
+        $other = $run->schedule;
+        $date  = $run->run_date->format('d M Y');
+
+        if ($other->bus_id === $busId) {
+            return "Bus {$other->bus?->registration_number} is already allocated to an overlapping run on {$date}.";
+        }
+
+        return "Driver {$other->driver?->name} is already allocated to an overlapping run on {$date}.";
+    }
+
+    /**
      * Expand this schedule's frequency over its date range into the concrete
      * dates it actually runs. Returns an array of 'Y-m-d' strings.
      *
