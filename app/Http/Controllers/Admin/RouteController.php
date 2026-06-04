@@ -124,7 +124,6 @@ class RouteController extends Controller
 
     private function hasActiveSchedules(BusRoute $route): bool
     {
-        // Wire up once Schedule model exists: return $route->schedules()->exists();
-        return isset($route) && false;
+        return $route->schedules()->where('is_active', true)->exists();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BusRoute extends Model
 {
@@ -28,4 +29,9 @@ class BusRoute extends Model
         'destination_lat' => 'decimal:7',
         'destination_lng' => 'decimal:7',
     ];
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class);
+    }
 }

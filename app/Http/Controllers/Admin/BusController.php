@@ -21,6 +21,7 @@ class BusController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate($this->rules());
+        $validated['registration_number'] = strtoupper($validated['registration_number']);
 
         Bus::create($validated);
 
@@ -31,6 +32,7 @@ class BusController extends Controller
     public function update(Request $request, Bus $bus): RedirectResponse
     {
         $validated = $request->validate($this->rules($bus->id));
+        $validated['registration_number'] = strtoupper($validated['registration_number']);
 
         $newInService = $request->boolean('is_in_service');
 

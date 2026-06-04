@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Bus extends Model
 {
@@ -26,4 +27,14 @@ class Bus extends Model
         'Double Decker',
         'Articulated Bus',
     ];
+
+    public function getRegistrationNumberAttribute(string $value): string
+    {
+        return strtoupper($value);
+    }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class);
+    }
 }
