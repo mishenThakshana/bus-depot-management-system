@@ -34,7 +34,8 @@
   </div>
 </div>
 
-{{-- Two column layout --}}
+@if(auth()->user()->isAdmin())
+{{-- Two column layout (admin) --}}
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:0;">
 
   {{-- Today's Runs --}}
@@ -110,6 +111,49 @@
   </div>
 
 </div>
+@else
+{{-- Today's Runs full-width (supervisor) --}}
+<div style="margin-top:0;">
+  <div class="table-wrapper">
+    <div class="table-header">
+      <span class="table-title">Today's Runs</span>
+      <a href="{{ route('panel.schedules') }}" class="table-action">View all{{ $todayRunsTotal > $todayRuns->count() ? " ($todayRunsTotal)" : '' }}</a>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Route</th>
+          <th>Bus</th>
+          <th>Driver</th>
+          <th>Departure</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse($todayRuns as $run)
+        <tr>
+          <td>{{ $run->schedule->route->name ?? '—' }}</td>
+          <td style="color:var(--text-muted);font-size:12px;">{{ $run->schedule->bus->registration_number ?? '—' }}</td>
+          <td>{{ $run->schedule->driver->name ?? '—' }}</td>
+          <td style="color:var(--text-muted);font-size:12px;">{{ \Carbon\Carbon::parse($run->schedule->departure_time)->format('h:i A') }}</td>
+          <td>
+            @if($run->status === 'scheduled')
+              <span class="badge badge--green">Scheduled</span>
+            @else
+              <span class="badge badge--red">Cancelled</span>
+            @endif
+          </td>
+        </tr>
+        @empty
+        <tr>
+          <td colspan="5" style="text-align:center; color:var(--text-muted); padding:24px;">No runs scheduled for today.</td>
+        </tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
+</div>
+@endif
 
 {{-- Alerts row --}}
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:20px;">

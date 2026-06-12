@@ -78,23 +78,25 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
         Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log');
     });
 
-    // ── Admin and Supervisor
-    Route::middleware('role:admin,supervisor')->group(function () {
-        Route::get('/routes',           [RouteController::class, 'index'])->name('routes');
+    // ── Routes — read access for admin & supervisor; writes admin-only
+    Route::get('/routes', [RouteController::class, 'index'])->middleware('role:admin,supervisor')->name('routes');
+    Route::middleware('role:admin')->group(function () {
         Route::post('/routes',          [RouteController::class, 'store'])->name('routes.store');
         Route::patch('/routes/{route}', [RouteController::class, 'update'])->name('routes.update');
         Route::patch('/routes/{route}/toggle-active', [RouteController::class, 'toggleActive'])->name('routes.toggle-active');
     });
-    // ── Admin and Supervisor (buses)
-    Route::middleware('role:admin,supervisor')->group(function () {
-        Route::get('/buses',          [BusController::class, 'index'])->name('buses');
+
+    // ── Buses — read access for admin & supervisor; writes admin-only
+    Route::get('/buses', [BusController::class, 'index'])->middleware('role:admin,supervisor')->name('buses');
+    Route::middleware('role:admin')->group(function () {
         Route::post('/buses',         [BusController::class, 'store'])->name('buses.store');
         Route::patch('/buses/{bus}',  [BusController::class, 'update'])->name('buses.update');
         Route::delete('/buses/{bus}', [BusController::class, 'destroy'])->name('buses.destroy');
     });
-    // ── Admin and Supervisor (drivers)
-    Route::middleware('role:admin,supervisor')->group(function () {
-        Route::get('/drivers',                            [DriverController::class, 'index'])->name('drivers');
+
+    // ── Drivers — read access for admin & supervisor; writes admin-only
+    Route::get('/drivers', [DriverController::class, 'index'])->middleware('role:admin,supervisor')->name('drivers');
+    Route::middleware('role:admin')->group(function () {
         Route::post('/drivers',                           [DriverController::class, 'store'])->name('drivers.store');
         Route::patch('/drivers/{driver}',                 [DriverController::class, 'update'])->name('drivers.update');
         Route::patch('/drivers/{driver}/toggle-active',   [DriverController::class, 'toggleActive'])->name('drivers.toggle-active');

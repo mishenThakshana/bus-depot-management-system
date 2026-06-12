@@ -7,7 +7,13 @@
 
 <div class="page-header">
   <h1 class="page-title">Buses</h1>
-  <p class="page-subtitle">Manage the depot fleet — registration, type, capacity, and service status.</p>
+  <p class="page-subtitle">
+    @if(auth()->user()->isAdmin())
+      Manage the depot fleet — registration, type, capacity, and service status.
+    @else
+      View the depot fleet — registration, type, capacity, and service status.
+    @endif
+  </p>
 </div>
 
 @if (session('success'))
@@ -31,12 +37,14 @@
 <div class="table-wrapper">
   <div class="table-header">
     <span class="table-title">All Buses <span class="table-count">({{ $buses->total() }})</span></span>
+    @if(auth()->user()->isAdmin())
     <button class="btn-primary" onclick="openAddModal()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
       Add Bus
     </button>
+    @endif
   </div>
 
   <form method="GET" action="{{ route('panel.buses') }}" class="list-filter">
@@ -97,6 +105,7 @@
             @endif
           </td>
           <td>
+            @if(auth()->user()->isAdmin())
             <div style="display:flex;align-items:center;gap:8px;">
               <button
                 class="btn-ghost btn-ghost--sm"
@@ -115,12 +124,17 @@
                 <button type="submit" class="btn-ghost btn-ghost--sm" style="color:var(--error);border-color:var(--error);">Remove</button>
               </form>
             </div>
+            @endif
           </td>
         </tr>
       @empty
         <tr>
           <td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px 16px;">
-            No buses found. Add one using the button above.
+            @if(auth()->user()->isAdmin())
+              No buses found. Add one using the button above.
+            @else
+              No buses found.
+            @endif
           </td>
         </tr>
       @endforelse

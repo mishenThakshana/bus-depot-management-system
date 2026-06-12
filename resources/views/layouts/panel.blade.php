@@ -205,6 +205,15 @@
             <span class="nav-item-text">Fuel &amp; Maintenance</span>
           </a>
 
+          <a href="{{ route('panel.reports') }}" class="nav-item {{ request()->routeIs('panel.reports') ? 'is-active' : '' }}">
+            <span class="nav-item-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Reports</span>
+          </a>
+
         </div>{{-- /nav-supervisor --}}
 
 

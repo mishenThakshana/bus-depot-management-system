@@ -7,7 +7,13 @@
 
 <div class="page-header">
   <h1 class="page-title">Bus Routes</h1>
-  <p class="page-subtitle">Manage bus routes, stops, and view them on Google Maps.</p>
+  <p class="page-subtitle">
+    @if(auth()->user()->isAdmin())
+      Manage bus routes, stops, and view them on Google Maps.
+    @else
+      View bus routes, stops, and map paths to support scheduling decisions.
+    @endif
+  </p>
 </div>
 
 @if (session('success'))
@@ -31,12 +37,14 @@
 <div class="table-wrapper">
   <div class="table-header">
     <span class="table-title">All Routes <span class="table-count">({{ $routes->total() }})</span></span>
+    @if(auth()->user()->isAdmin())
     <button class="btn-primary" onclick="openAddModal()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
       Add Route
     </button>
+    @endif
   </div>
 
   <form method="GET" action="{{ route('panel.routes') }}" class="list-filter">
@@ -110,6 +118,7 @@
                 </svg>
                 View Map
               </button>
+              @if(auth()->user()->isAdmin())
               <button
                 class="btn-ghost btn-ghost--sm"
                 onclick="openEditModal({{ json_encode([
@@ -131,13 +140,18 @@
                 @method('PATCH')
                 <button type="submit" class="btn-ghost btn-ghost--sm" style="{{ $route->is_active ? 'color:var(--error);border-color:var(--error);' : '' }}">{{ $route->is_active ? 'Deactivate' : 'Activate' }}</button>
               </form>
+              @endif
             </div>
           </td>
         </tr>
       @empty
         <tr>
           <td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px 16px;">
-            No routes found. Add one using the button above.
+            @if(auth()->user()->isAdmin())
+              No routes found. Add one using the button above.
+            @else
+              No routes found.
+            @endif
           </td>
         </tr>
       @endforelse
