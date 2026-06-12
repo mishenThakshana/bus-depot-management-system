@@ -7,15 +7,22 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'role', 'is_active', 'must_change_password', 'password'])]
+#[Fillable(['name', 'email', 'role', 'driver_id', 'is_active', 'must_change_password', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    /** Driver record this login account represents (driver role only). */
+    public function driver(): BelongsTo
+    {
+        return $this->belongsTo(Driver::class);
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -44,9 +51,20 @@ class User extends Authenticatable
         return $this->role === 'supervisor';
     }
 
+    public function isDriver(): bool
+    {
+        return $this->role === 'driver';
+    }
+
     public function isActive(): bool
     {
         return (bool) $this->is_active;
+    }
+
+    /** Where this user lands after logging in, based on role. */
+    public function homeRoute(): string
+    {
+        return $this->isDriver() ? 'panel.my-schedule' : 'panel.dashboard';
     }
 
     public function getRoleLabel(): string
@@ -54,6 +72,7 @@ class User extends Authenticatable
         return match ($this->role) {
             'admin'      => 'Administrator',
             'supervisor' => 'Supervisor',
+            'driver'     => 'Driver',
             default      => ucfirst($this->role),
         };
     }
@@ -63,6 +82,7 @@ class User extends Authenticatable
         return match ($this->role) {
             'admin'      => 'A',
             'supervisor' => 'S',
+            'driver'     => 'D',
             default      => strtoupper($this->role[0]),
         };
     }

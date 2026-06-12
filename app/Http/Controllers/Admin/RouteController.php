@@ -5,17 +5,33 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\BusRoute;
+use App\Models\ScheduleRun;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class RouteController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $routes = BusRoute::orderBy('name')->paginate(10)->withQueryString();
+        $search = trim((string) $request->query('search', ''));
+        $status = $request->query('status'); // active | inactive
 
-        return view('panel.routes', compact('routes'));
+        $routes = BusRoute::query()
+            ->when($search !== '', function ($q) use ($search) {
+                $term = "%{$search}%";
+                $q->where(fn ($w) => $w->where('name', 'like', $term)
+                    ->orWhere('origin', 'like', $term)
+                    ->orWhere('destination', 'like', $term));
+            })
+            ->when($status === 'active', fn ($q) => $q->where('is_active', true))
+            ->when($status === 'inactive', fn ($q) => $q->where('is_active', false))
+            ->orderBy('name')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('panel.routes', compact('routes', 'search', 'status'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -45,9 +61,9 @@ class RouteController extends Controller
 
         $newIsActive = $request->boolean('is_active');
 
-        if ($route->is_active && ! $newIsActive && $this->hasActiveSchedules($route)) {
+        if ($route->is_active && ! $newIsActive && $this->hasFutureRuns($route)) {
             return redirect()->route('panel.routes')
-                ->with('error', "Route \"{$route->name}\" cannot be deactivated while it is assigned to a schedule.");
+                ->with('error', "Route \"{$route->name}\" cannot be deactivated while it has upcoming runs scheduled.");
         }
 
         $route->update([
@@ -106,23 +122,47 @@ class RouteController extends Controller
         return $clean ?: null;
     }
 
-    public function destroy(BusRoute $route): RedirectResponse
+    public function toggleActive(BusRoute $route): RedirectResponse
     {
-        if ($this->hasActiveSchedules($route)) {
+        $newIsActive = ! $route->is_active;
+
+        if (! $newIsActive && $this->hasFutureRuns($route)) {
             return redirect()->route('panel.routes')
-                ->with('error', "Route \"{$route->name}\" cannot be deleted while it is assigned to a schedule.");
+                ->with('error', "Route \"{$route->name}\" cannot be deactivated while it has upcoming runs scheduled. Cancel or reschedule them first.");
         }
 
-        $name = $route->name;
-        $route->delete();
+        $route->update(['is_active' => $newIsActive]);
 
-        ActivityLog::record('routes', 'deleted', "Route \"{$name}\" deleted");
+        $label = $newIsActive ? 'activated' : 'deactivated';
 
-        return redirect()->route('panel.routes')->with('success', "Route \"{$name}\" has been deleted.");
+        ActivityLog::record('routes', $label, "Route \"{$route->name}\" {$label}");
+
+        return redirect()->route('panel.routes')
+            ->with('success', "Route \"{$route->name}\" has been {$label}.");
     }
 
-    private function hasActiveSchedules(BusRoute $route): bool
+    /**
+     * Whether the route has any upcoming (future-dated, or today-but-not-yet-
+     * departed) scheduled runs on an active schedule. Such routes must stay
+     * active so the trips they back remain valid.
+     */
+    private function hasFutureRuns(BusRoute $route): bool
     {
-        return $route->schedules()->where('is_active', true)->exists();
+        $today   = Carbon::today()->toDateString();
+        $nowTime = Carbon::now()->format('H:i:s');
+
+        return ScheduleRun::query()
+            ->scheduled()
+            ->join('schedules', 'schedules.id', '=', 'schedule_runs.schedule_id')
+            ->where('schedules.bus_route_id', $route->id)
+            ->where('schedules.is_active', true)
+            ->where(function ($q) use ($today, $nowTime) {
+                $q->whereDate('schedule_runs.run_date', '>', $today)
+                    ->orWhere(function ($q2) use ($today, $nowTime) {
+                        $q2->whereDate('schedule_runs.run_date', '=', $today)
+                            ->whereTime('schedules.departure_time', '>', $nowTime);
+                    });
+            })
+            ->exists();
     }
 }

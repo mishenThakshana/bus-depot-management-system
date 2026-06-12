@@ -14,7 +14,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'supervisor'])->default('supervisor');
+            $table->enum('role', ['admin', 'supervisor', 'driver'])->default('supervisor');
+            // For driver accounts: links the login user to its driver record. The
+            // foreign key is attached in the drivers migration (created later).
+            $table->unsignedBigInteger('driver_id')->nullable();
             $table->boolean('is_active')->default(true);
             $table->boolean('must_change_password')->default(false);
             $table->rememberToken();

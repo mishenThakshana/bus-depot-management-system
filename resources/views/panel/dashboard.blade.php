@@ -41,7 +41,7 @@
   <div class="table-wrapper">
     <div class="table-header">
       <span class="table-title">Today's Runs</span>
-      <a href="{{ route('panel.schedules') }}" class="table-action">View all</a>
+      <a href="{{ route('panel.schedules') }}" class="table-action">View all{{ $todayRunsTotal > $todayRuns->count() ? " ($todayRunsTotal)" : '' }}</a>
     </div>
     <table class="data-table">
       <thead>
@@ -118,7 +118,7 @@
   <div class="table-wrapper">
     <div class="table-header">
       <span class="table-title">Upcoming Maintenance</span>
-      <a href="{{ route('panel.fuel', ['tab' => 'maintenance']) }}" class="table-action">View all</a>
+      <a href="{{ route('panel.fuel', ['tab' => 'maintenance']) }}" class="table-action">View all{{ $upcomingMaintenanceTotal > $upcomingMaintenance->count() ? " ($upcomingMaintenanceTotal)" : '' }}</a>
     </div>
     <table class="data-table">
       <thead>
@@ -159,7 +159,7 @@
   <div class="table-wrapper">
     <div class="table-header">
       <span class="table-title">Licence Renewals</span>
-      <a href="{{ route('panel.drivers') }}" class="table-action">View all</a>
+      <a href="{{ route('panel.drivers', ['licence' => 'soon']) }}" class="table-action">View all{{ $licenceRenewalsTotal > $licenceRenewals->count() ? " ($licenceRenewalsTotal)" : '' }}</a>
     </div>
     <table class="data-table">
       <thead>

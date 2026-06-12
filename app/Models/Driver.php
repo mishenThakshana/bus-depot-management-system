@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Driver extends Model
 {
     protected $fillable = [
         'name',
+        'email',
         'nic',
         'licence_number',
         'licence_expiry_date',
@@ -24,5 +26,11 @@ class Driver extends Model
     public function schedules(): HasMany
     {
         return $this->hasMany(Schedule::class);
+    }
+
+    /** The login account for this driver, if one has been provisioned. */
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class);
     }
 }

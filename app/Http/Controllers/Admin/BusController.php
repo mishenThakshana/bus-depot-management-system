@@ -12,11 +12,22 @@ use Illuminate\View\View;
 
 class BusController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $buses = Bus::orderBy('registration_number')->paginate(10)->withQueryString();
+        $search = trim((string) $request->query('search', ''));
+        $type   = $request->query('type'); // vehicle type
+        $status = $request->query('status'); // in | out (of service)
 
-        return view('panel.buses', compact('buses'));
+        $buses = Bus::query()
+            ->when($search !== '', fn ($q) => $q->where('registration_number', 'like', "%{$search}%"))
+            ->when(in_array($type, Bus::$vehicleTypes, true), fn ($q) => $q->where('vehicle_type', $type))
+            ->when($status === 'in', fn ($q) => $q->where('is_in_service', true))
+            ->when($status === 'out', fn ($q) => $q->where('is_in_service', false))
+            ->orderBy('registration_number')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('panel.buses', compact('buses', 'search', 'type', 'status'));
     }
 
     public function store(Request $request): RedirectResponse

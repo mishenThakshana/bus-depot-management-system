@@ -15,7 +15,7 @@
   <header class="panel-header">
     <div class="panel-header-left">
       {{-- Logo --}}
-      <a href="{{ route('panel.dashboard') }}" class="panel-logo">
+      <a href="{{ route(auth()->user()->homeRoute()) }}" class="panel-logo">
         <div class="panel-logo-icon">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <rect x="1" y="3" width="15" height="13" rx="2"/>
@@ -206,6 +206,21 @@
           </a>
 
         </div>{{-- /nav-supervisor --}}
+
+
+        {{-- ── DRIVER NAV ── --}}
+        <div class="sidebar-nav-group {{ auth()->user()->isDriver() ? 'is-active' : '' }}" id="nav-driver">
+
+          <a href="{{ route('panel.my-schedule') }}" class="nav-item {{ request()->routeIs('panel.my-schedule') ? 'is-active' : '' }}">
+            <span class="nav-item-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">My Schedule</span>
+          </a>
+
+        </div>{{-- /nav-driver --}}
 
 
       </nav>

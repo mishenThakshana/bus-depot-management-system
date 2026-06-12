@@ -10,27 +10,28 @@ class AuditLogController extends Controller
 {
     public function index(Request $request)
     {
-        $tab = $request->query('tab', 'login');
-
+        $tab     = $request->query('tab', 'login');
         $section = $tab;
 
-        $query = ActivityLog::query()->latest('created_at');
+        // Actions actually recorded for this section, to populate the filter.
+        $actions = ActivityLog::where('section', $section)
+            ->select('action')->distinct()->orderBy('action')->pluck('action');
 
-        $query->where('section', $section);
+        $action = $request->query('action');
 
-        if ($request->filled('user_search')) {
-            $term = '%' . $request->user_search . '%';
-            $query->where(fn ($q) => $q->where('user_name', 'like', $term)->orWhere('user_email', 'like', $term));
-        }
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
+        $query = ActivityLog::query()
+            ->where('section', $section)
+            ->when($request->filled('user_search'), function ($q) use ($request) {
+                $term = '%' . $request->user_search . '%';
+                $q->where(fn ($w) => $w->where('user_name', 'like', $term)->orWhere('user_email', 'like', $term));
+            })
+            ->when($action && $actions->contains($action), fn ($q) => $q->where('action', $action))
+            ->when($request->filled('date_from'), fn ($q) => $q->whereDate('created_at', '>=', $request->date_from))
+            ->when($request->filled('date_to'), fn ($q) => $q->whereDate('created_at', '<=', $request->date_to))
+            ->latest('created_at');
 
         $logs = $query->paginate(25)->withQueryString();
 
-        return view('panel.audit-log', compact('tab', 'logs'));
+        return view('panel.audit-log', compact('tab', 'logs', 'actions', 'action'));
     }
 }

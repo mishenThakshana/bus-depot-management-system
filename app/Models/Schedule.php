@@ -32,6 +32,7 @@ class Schedule extends Model
     public static array $frequencies = [
         'daily',
         'weekly',
+        'monthly',
     ];
 
     /**
@@ -142,6 +143,9 @@ class Schedule extends Model
      *   weekly  — every day in the range whose weekday is one of the selected
      *             days_of_week (e.g. Monday + Thursday). If no days are
      *             selected it falls back to the start date's own weekday.
+     *   monthly — once a month on the start date's day-of-month (e.g. the 15th).
+     *             Months that are too short to contain that day (e.g. the 31st
+     *             in February) are skipped.
      */
     public function runDatesBetween(): array
     {
@@ -152,9 +156,11 @@ class Schedule extends Model
             return [];
         }
 
-        return $this->frequency === 'weekly'
-            ? $this->weeklyDates($start, $end)
-            : $this->datesFromPeriod(CarbonPeriod::create($start, '1 day', $end));
+        return match ($this->frequency) {
+            'weekly'  => $this->weeklyDates($start, $end),
+            'monthly' => $this->monthlyDates($start, $end),
+            default   => $this->datesFromPeriod(CarbonPeriod::create($start, '1 day', $end)),
+        };
     }
 
     private function datesFromPeriod(CarbonPeriod $period): array
@@ -175,6 +181,29 @@ class Schedule extends Model
 
         foreach (CarbonPeriod::create($start, '1 day', $end) as $date) {
             if (in_array($date->dayOfWeek, $days, true)) {
+                $dates[] = $date->format('Y-m-d');
+            }
+        }
+
+        return $dates;
+    }
+
+    private function monthlyDates(\Carbon\Carbon $start, \Carbon\Carbon $end): array
+    {
+        $dayOfMonth = $start->day;
+        $dates = [];
+
+        // Walk month by month from the start month. A month contributes a run
+        // only when it is long enough to hold the chosen day and that day lands
+        // within the schedule's range.
+        for ($cursor = $start->copy()->startOfMonth(); $cursor->lte($end); $cursor->addMonth()) {
+            if ($cursor->daysInMonth < $dayOfMonth) {
+                continue;
+            }
+
+            $date = $cursor->copy()->day($dayOfMonth);
+
+            if ($date->gte($start) && $date->lte($end)) {
                 $dates[] = $date->format('Y-m-d');
             }
         }

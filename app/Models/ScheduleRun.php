@@ -45,12 +45,32 @@ class ScheduleRun extends Model
     }
 
     /**
-     * A run is "past" once its date is before today. Past runs are locked:
-     * they have already happened, so they can be neither cancelled, moved,
-     * nor reactivated. Today's run still counts as actionable.
+     * A run is "past" once its departure moment has elapsed. Past runs are
+     * locked: they have already departed, so they can be neither cancelled,
+     * moved, nor reactivated. This is time-aware — today's run stays actionable
+     * only until its scheduled departure time, after which it is past too.
+     *
+     * Falls back to a date-only comparison if the schedule's departure time is
+     * unavailable.
      */
     public function isPast(): bool
     {
-        return $this->run_date->lt(now()->startOfDay());
+        $departure = $this->schedule?->departure_time;
+
+        if (! $departure) {
+            return $this->run_date->lt(now()->startOfDay());
+        }
+
+        return $this->departsAt()->isPast();
+    }
+
+    /**
+     * The concrete departure moment: this run's date at the schedule's
+     * departure time.
+     */
+    public function departsAt(): \Illuminate\Support\Carbon
+    {
+        return $this->run_date->copy()
+            ->setTimeFromTimeString(substr((string) $this->schedule->departure_time, 0, 8));
     }
 }

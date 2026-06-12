@@ -61,6 +61,18 @@
     <input type="text" name="user_search" class="filter-input" placeholder="Search by name or email…" value="{{ request('user_search') }}">
   </div>
 
+  @if ($actions->isNotEmpty())
+  <div class="filter-group">
+    <label class="filter-label">Action</label>
+    <select name="action" class="filter-input">
+      <option value="">All actions</option>
+      @foreach ($actions as $a)
+        <option value="{{ $a }}" {{ $action === $a ? 'selected' : '' }}>{{ $actionLabels[$a] ?? ucfirst(str_replace('_', ' ', $a)) }}</option>
+      @endforeach
+    </select>
+  </div>
+  @endif
+
   <div class="filter-group">
     <label class="filter-label">From</label>
     <input type="date" name="date_from" class="filter-input" value="{{ request('date_from') }}">
@@ -73,7 +85,7 @@
 
   <div class="filter-actions">
     <button type="submit" class="btn-primary">Filter</button>
-    @if (request()->hasAny(['user_search', 'date_from', 'date_to']))
+    @if (request()->hasAny(['user_search', 'action', 'date_from', 'date_to']))
       <a href="{{ route('panel.audit-log', ['tab' => $tab]) }}" class="btn-ghost">Clear</a>
     @endif
   </div>

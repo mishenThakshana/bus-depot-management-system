@@ -10,27 +10,9 @@ use App\Models\ScheduleRun;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class ScheduleRunController extends Controller
 {
-    public function index(Schedule $schedule): View
-    {
-        $schedule->load(['route', 'bus', 'driver']);
-
-        $runs = $schedule->runs()->orderBy('run_date')->paginate(20);
-
-        $calendar = $schedule->runs()->orderBy('run_date')->get(['id', 'run_date', 'status'])
-            ->map(fn (ScheduleRun $run) => [
-                'id'        => $run->id,
-                'date'      => $run->run_date->format('Y-m-d'),
-                'past'      => $run->isPast(),
-                'cancelled' => $run->isCancelled(),
-            ])->values();
-
-        return view('panel.schedule-runs', compact('schedule', 'runs', 'calendar'));
-    }
-
     public function reschedule(Request $request, Schedule $schedule, ScheduleRun $run): RedirectResponse
     {
         abort_unless($run->schedule_id === $schedule->id, 404);
@@ -63,8 +45,7 @@ class ScheduleRunController extends Controller
 
         ActivityLog::record('schedule_runs', 'rescheduled', "Schedule #{$schedule->id} run moved from {$oldFormatted} to {$formatted}");
 
-        return redirect()->route('panel.schedules.runs', $schedule)
-            ->with('success', "Run moved to {$formatted}.");
+        return back()->with('success', "Run moved to {$formatted}.");
     }
 
     public function cancel(Schedule $schedule, ScheduleRun $run): RedirectResponse
@@ -79,8 +60,7 @@ class ScheduleRunController extends Controller
 
         ActivityLog::record('schedule_runs', 'cancelled', "Schedule #{$schedule->id} run on {$run->run_date->format('d M Y')} cancelled");
 
-        return redirect()->route('panel.schedules.runs', $schedule)
-            ->with('success', "Run on {$run->run_date->format('d M Y')} has been cancelled.");
+        return back()->with('success', "Run on {$run->run_date->format('d M Y')} has been cancelled.");
     }
 
     public function reactivate(Schedule $schedule, ScheduleRun $run): RedirectResponse
@@ -110,7 +90,6 @@ class ScheduleRunController extends Controller
 
         ActivityLog::record('schedule_runs', 'reactivated', "Schedule #{$schedule->id} run on {$run->run_date->format('d M Y')} reactivated");
 
-        return redirect()->route('panel.schedules.runs', $schedule)
-            ->with('success', "Run on {$run->run_date->format('d M Y')} has been reactivated.");
+        return back()->with('success', "Run on {$run->run_date->format('d M Y')} has been reactivated.");
     }
 }

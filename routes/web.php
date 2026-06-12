@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ScheduleController;
 use App\Http\Controllers\Admin\ScheduleRunController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\DriverScheduleController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root to login
@@ -57,10 +58,16 @@ Route::middleware('auth')->group(function () {
 // Panel (authenticated users only) 
 Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.change', 'session.timeout'])->group(function () {
 
-    Route::get('/', fn() => redirect()->route('panel.dashboard'));
+    Route::get('/', fn() => redirect()->route(auth()->user()->homeRoute()));
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('role:admin,supervisor')
         ->name('dashboard');
+
+    // ── Driver — read-only view of their own schedule
+    Route::middleware('role:driver')->group(function () {
+        Route::get('/my-schedule', [DriverScheduleController::class, 'index'])->name('my-schedule');
+    });
 
     // ── Admin-only
     Route::middleware('role:admin')->group(function () {
@@ -76,7 +83,7 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
         Route::get('/routes',           [RouteController::class, 'index'])->name('routes');
         Route::post('/routes',          [RouteController::class, 'store'])->name('routes.store');
         Route::patch('/routes/{route}', [RouteController::class, 'update'])->name('routes.update');
-        Route::delete('/routes/{route}',[RouteController::class, 'destroy'])->name('routes.destroy');
+        Route::patch('/routes/{route}/toggle-active', [RouteController::class, 'toggleActive'])->name('routes.toggle-active');
     });
     // ── Admin and Supervisor (buses)
     Route::middleware('role:admin,supervisor')->group(function () {
@@ -98,7 +105,6 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
         Route::post('/schedules',             [ScheduleController::class, 'store'])->name('schedules.store');
         Route::patch('/schedules/{schedule}', [ScheduleController::class, 'update'])->name('schedules.update');
 
-        Route::get('/schedules/{schedule}/runs',                    [ScheduleRunController::class, 'index'])->name('schedules.runs');
         Route::patch('/schedules/{schedule}/runs/{run}',            [ScheduleRunController::class, 'reschedule'])->name('schedules.runs.reschedule');
         Route::patch('/schedules/{schedule}/runs/{run}/cancel',     [ScheduleRunController::class, 'cancel'])->name('schedules.runs.cancel');
         Route::patch('/schedules/{schedule}/runs/{run}/reactivate', [ScheduleRunController::class, 'reactivate'])->name('schedules.runs.reactivate');
@@ -116,8 +122,11 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
         Route::delete('/maintenance/{maintenanceRecord}',      [MaintenanceController::class, 'destroy'])->name('maintenance.destroy');
     });
 
-    Route::get('/reports',                    [ReportController::class, 'index'])->name('reports');
-    Route::get('/reports/fuel',               [ReportController::class, 'exportFuel'])->name('reports.fuel');
-    Route::get('/reports/maintenance',        [ReportController::class, 'exportMaintenance'])->name('reports.maintenance');
-    Route::get('/reports/schedule',           [ReportController::class, 'exportSchedule'])->name('reports.schedule');
+    // ── Reports — Admin/Supervisor
+    Route::middleware('role:admin,supervisor')->group(function () {
+        Route::get('/reports',                    [ReportController::class, 'index'])->name('reports');
+        Route::get('/reports/fuel',               [ReportController::class, 'exportFuel'])->name('reports.fuel');
+        Route::get('/reports/maintenance',        [ReportController::class, 'exportMaintenance'])->name('reports.maintenance');
+        Route::get('/reports/schedule',           [ReportController::class, 'exportSchedule'])->name('reports.schedule');
+    });
 });

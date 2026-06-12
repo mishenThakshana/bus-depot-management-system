@@ -1019,3 +1019,34 @@ input, select, textarea {
     display: none;
   }
 }
+
+/* ── Shared list filter bar (search / dropdowns above a data table) ── */
+.list-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.list-filter .ff { display: flex; flex-direction: column; gap: 4px; }
+.list-filter .ff--grow { flex: 1 1 220px; }
+.list-filter label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.list-filter input,
+.list-filter select {
+  height: 36px; padding: 0 10px; font-size: 13px; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  min-width: 150px;
+}
+.list-filter .ff--grow input { min-width: 0; width: 100%; }
+.list-filter input:focus,
+.list-filter select:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-light);
+}
+.list-filter .actions { display: flex; align-items: center; gap: 8px; }
+.list-filter .actions .btn-primary,
+.list-filter .actions .btn-ghost { height: 36px; }

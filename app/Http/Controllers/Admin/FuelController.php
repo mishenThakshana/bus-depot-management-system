@@ -18,12 +18,28 @@ class FuelController extends Controller
     {
         $tab = $request->query('tab', 'fuel');
 
+        // Shared filters applied per-tab to the relevant date column.
+        $filters = [
+            'bus_id'    => $request->query('bus_id'),
+            'date_from' => $request->query('date_from'),
+            'date_to'   => $request->query('date_to'),
+            'type'      => $request->query('type'), // maintenance only
+        ];
+        $hasFilters = collect($filters)->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+
         $fuelLogs = FuelLog::with(['bus', 'driver'])
+            ->when($filters['bus_id'], fn ($q, $v) => $q->where('bus_id', $v))
+            ->when($filters['date_from'], fn ($q, $v) => $q->whereDate('fuel_date', '>=', $v))
+            ->when($filters['date_to'], fn ($q, $v) => $q->whereDate('fuel_date', '<=', $v))
             ->latest('fuel_date')->latest('id')
             ->paginate(10, ['*'], 'fuel_page')
             ->withQueryString();
 
         $maintenanceRecords = MaintenanceRecord::with('bus')
+            ->when($filters['bus_id'], fn ($q, $v) => $q->where('bus_id', $v))
+            ->when($filters['date_from'], fn ($q, $v) => $q->whereDate('serviced_date', '>=', $v))
+            ->when($filters['date_to'], fn ($q, $v) => $q->whereDate('serviced_date', '<=', $v))
+            ->when($filters['type'], fn ($q, $v) => $q->where('maintenance_type', $v))
             ->latest('serviced_date')->latest('id')
             ->paginate(10, ['*'], 'maint_page')
             ->withQueryString();
@@ -32,7 +48,7 @@ class FuelController extends Controller
         $drivers = Driver::where('is_active', true)->orderBy('name')->get();
 
         return view('panel.fuel', compact(
-            'tab', 'fuelLogs', 'maintenanceRecords', 'buses', 'drivers'
+            'tab', 'fuelLogs', 'maintenanceRecords', 'buses', 'drivers', 'filters', 'hasFilters'
         ));
     }
 

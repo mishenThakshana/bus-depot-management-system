@@ -31,6 +31,28 @@
     </button>
   </div>
 
+  <form method="GET" action="{{ route('panel.users') }}" class="list-filter">
+    <div class="ff ff--grow">
+      <label>Search</label>
+      <input type="text" name="search" value="{{ $search }}" placeholder="Name or email…" />
+    </div>
+    <div class="ff">
+      <label>Role</label>
+      <select name="role_filter">
+        <option value="">All roles</option>
+        <option value="admin" {{ $role === 'admin' ? 'selected' : '' }}>Administrator</option>
+        <option value="supervisor" {{ $role === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
+        <option value="driver" {{ $role === 'driver' ? 'selected' : '' }}>Driver</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn-primary">Apply</button>
+      @if ($search !== '' || $role)
+        <a href="{{ route('panel.users') }}" class="btn-ghost btn-ghost--sm">Clear</a>
+      @endif
+    </div>
+  </form>
+
   <table class="data-table">
     <thead>
       <tr>

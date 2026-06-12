@@ -39,6 +39,27 @@
     </button>
   </div>
 
+  <form method="GET" action="{{ route('panel.routes') }}" class="list-filter">
+    <div class="ff ff--grow">
+      <label>Search</label>
+      <input type="text" name="search" value="{{ $search }}" placeholder="Name, origin or destination…" />
+    </div>
+    <div class="ff">
+      <label>Status</label>
+      <select name="status">
+        <option value="">All</option>
+        <option value="active" {{ $status === 'active' ? 'selected' : '' }}>Active</option>
+        <option value="inactive" {{ $status === 'inactive' ? 'selected' : '' }}>Inactive</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn-primary">Apply</button>
+      @if ($search !== '' || $status)
+        <a href="{{ route('panel.routes') }}" class="btn-ghost btn-ghost--sm">Clear</a>
+      @endif
+    </div>
+  </form>
+
   <table class="data-table">
     <thead>
       <tr>
@@ -105,10 +126,10 @@
                   'is_active'       => $route->is_active,
                 ]) }})"
               >Edit</button>
-              <form method="POST" action="{{ route('panel.routes.destroy', $route) }}" onsubmit="return confirm('Delete route \'{{ addslashes($route->name) }}\'?')">
+              <form method="POST" action="{{ route('panel.routes.toggle-active', $route) }}" onsubmit="return confirm('{{ $route->is_active ? 'Deactivate' : 'Activate' }} route \'{{ addslashes($route->name) }}\'?')">
                 @csrf
-                @method('DELETE')
-                <button type="submit" class="btn-ghost btn-ghost--sm" style="color:var(--error);border-color:var(--error);">Delete</button>
+                @method('PATCH')
+                <button type="submit" class="btn-ghost btn-ghost--sm" style="{{ $route->is_active ? 'color:var(--error);border-color:var(--error);' : '' }}">{{ $route->is_active ? 'Deactivate' : 'Activate' }}</button>
               </form>
             </div>
           </td>

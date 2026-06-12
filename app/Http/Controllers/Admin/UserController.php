@@ -15,14 +15,22 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = trim((string) $request->query('search', ''));
+        $role   = $request->query('role_filter'); // admin | supervisor | driver
+
         $users = User::where('id', '!=', auth()->id())
+            ->when($search !== '', function ($q) use ($search) {
+                $term = "%{$search}%";
+                $q->where(fn ($w) => $w->where('name', 'like', $term)->orWhere('email', 'like', $term));
+            })
+            ->when(in_array($role, ['admin', 'supervisor', 'driver'], true), fn ($q) => $q->where('role', $role))
             ->orderBy('name')
             ->paginate(10)
             ->withQueryString();
 
-        return view('panel.users', compact('users'));
+        return view('panel.users', compact('users', 'search', 'role'));
     }
 
     public function store(Request $request): RedirectResponse

@@ -39,11 +39,34 @@
     </button>
   </div>
 
+  <form method="GET" action="{{ route('panel.drivers') }}" class="list-filter">
+    <div class="ff ff--grow">
+      <label>Search</label>
+      <input type="text" name="search" value="{{ $search }}" placeholder="Name, NIC, licence, email or phone…" />
+    </div>
+    <div class="ff">
+      <label>Licence</label>
+      <select name="licence">
+        <option value="">All</option>
+        <option value="expired" {{ $licence === 'expired' ? 'selected' : '' }}>Expired</option>
+        <option value="soon" {{ $licence === 'soon' ? 'selected' : '' }}>Expiring ≤ 60 days</option>
+        <option value="valid" {{ $licence === 'valid' ? 'selected' : '' }}>Valid</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn-primary">Apply</button>
+      @if ($search !== '' || $licence)
+        <a href="{{ route('panel.drivers') }}" class="btn-ghost btn-ghost--sm">Clear</a>
+      @endif
+    </div>
+  </form>
+
   <table class="data-table">
     <thead>
       <tr>
         <th>#</th>
         <th>Name</th>
+        <th>Email</th>
         <th>NIC</th>
         <th>Licence No.</th>
         <th>Licence Expiry</th>
@@ -57,6 +80,7 @@
         <tr>
           <td style="color:var(--text-muted);font-size:12px;">{{ $drivers->firstItem() + $loop->index }}</td>
           <td style="font-weight:600;">{{ $driver->name }}</td>
+          <td style="color:var(--text-muted);">{{ $driver->email ?? '—' }}</td>
           <td style="color:var(--text-muted);letter-spacing:0.03em;">{{ $driver->nic }}</td>
           <td style="letter-spacing:0.03em;">{{ $driver->licence_number }}</td>
           <td style="color:{{ $driver->licence_expiry_date->isPast() ? 'var(--error)' : ($driver->licence_expiry_date->diffInDays(now()) <= 90 ? 'var(--warning,#b45309)' : 'var(--text-muted)') }};">
@@ -77,6 +101,7 @@
                 onclick="openEditModal({{ json_encode([
                   'id'                  => $driver->id,
                   'name'                => $driver->name,
+                  'email'               => $driver->email,
                   'nic'                 => $driver->nic,
                   'licence_number'      => $driver->licence_number,
                   'licence_expiry_date' => $driver->licence_expiry_date->format('Y-m-d'),
@@ -99,8 +124,8 @@
         </tr>
       @empty
         <tr>
-          <td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px 16px;">
-            No drivers found. Add one using the button above.
+          <td colspan="9" style="text-align:center;color:var(--text-muted);padding:40px 16px;">
+            No drivers found.
           </td>
         </tr>
       @endforelse
@@ -164,6 +189,11 @@
           <input type="text" id="name" name="name" value="{{ old('name') }}" placeholder="e.g. Kamal Perera" required autocomplete="off" />
         </div>
 
+        <div class="field" style="margin-top:14px;">
+          <label for="email">Email <span style="font-weight:400;color:var(--text-muted);">(a login account is created and emailed)</span></label>
+          <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="e.g. kamal@depot.com" required autocomplete="off" />
+        </div>
+
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;">
           <div class="field">
             <label for="nic">NIC Number</label>
@@ -222,6 +252,11 @@
         <div class="field">
           <label for="edit_name">Full Name</label>
           <input type="text" id="edit_name" name="name" placeholder="e.g. Kamal Perera" required autocomplete="off" />
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="edit_email">Email</label>
+          <input type="email" id="edit_email" name="email" placeholder="e.g. kamal@depot.com" required autocomplete="off" />
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;">
@@ -313,6 +348,7 @@
     editForm.action = '/panel/drivers/' + driver.id;
 
     document.getElementById('edit_name').value               = driver.name;
+    document.getElementById('edit_email').value              = driver.email ?? '';
     document.getElementById('edit_nic').value                = driver.nic;
     document.getElementById('edit_phone_number').value       = driver.phone_number;
     document.getElementById('edit_licence_number').value     = driver.licence_number;

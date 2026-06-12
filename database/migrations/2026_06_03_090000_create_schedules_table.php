@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('driver_id')->constrained()->cascadeOnDelete();
             $table->time('departure_time');
             $table->time('arrival_time');
-            $table->enum('frequency', ['daily', 'weekly']);
+            $table->enum('frequency', ['daily', 'weekly', 'monthly']);
             // For weekly schedules: which weekdays it runs on, as an array of
             // Carbon dayOfWeek integers (0 = Sunday … 6 = Saturday). Null for daily.
             $table->json('days_of_week')->nullable();

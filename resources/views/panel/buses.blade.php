@@ -39,6 +39,36 @@
     </button>
   </div>
 
+  <form method="GET" action="{{ route('panel.buses') }}" class="list-filter">
+    <div class="ff ff--grow">
+      <label>Search</label>
+      <input type="text" name="search" value="{{ $search }}" placeholder="Registration number…" />
+    </div>
+    <div class="ff">
+      <label>Vehicle type</label>
+      <select name="type">
+        <option value="">All types</option>
+        @foreach (\App\Models\Bus::$vehicleTypes as $vt)
+          <option value="{{ $vt }}" {{ $type === $vt ? 'selected' : '' }}>{{ $vt }}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="ff">
+      <label>Status</label>
+      <select name="status">
+        <option value="">All</option>
+        <option value="in" {{ $status === 'in' ? 'selected' : '' }}>In service</option>
+        <option value="out" {{ $status === 'out' ? 'selected' : '' }}>Out of service</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn-primary">Apply</button>
+      @if ($search !== '' || $type || $status)
+        <a href="{{ route('panel.buses') }}" class="btn-ghost btn-ghost--sm">Clear</a>
+      @endif
+    </div>
+  </form>
+
   <table class="data-table">
     <thead>
       <tr>

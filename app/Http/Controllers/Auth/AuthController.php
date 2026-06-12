@@ -45,7 +45,7 @@ class AuthController extends Controller
                 return redirect()->route('password.change');
             }
 
-            return redirect()->intended(route('panel.dashboard'));
+            return redirect()->intended(route(Auth::user()->homeRoute()));
         }
 
         return back()
@@ -56,7 +56,7 @@ class AuthController extends Controller
     public function showChangePassword(): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
     {
         if (! Auth::user()->must_change_password) {
-            return redirect()->route('panel.dashboard');
+            return redirect()->route(Auth::user()->homeRoute());
         }
 
         return view('auth.change-password');
@@ -78,7 +78,7 @@ class AuthController extends Controller
         ]);
 
         return redirect()
-            ->intended(route('panel.dashboard'))
+            ->intended(route(Auth::user()->homeRoute()))
             ->with('success', 'Password updated. Welcome!');
     }
 

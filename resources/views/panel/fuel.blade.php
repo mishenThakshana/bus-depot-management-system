@@ -59,6 +59,27 @@
     </button>
   </div>
 
+  <form method="GET" action="{{ route('panel.fuel') }}" class="list-filter">
+    <input type="hidden" name="tab" value="fuel">
+    <div class="ff">
+      <label>Bus</label>
+      <select name="bus_id">
+        <option value="">All buses</option>
+        @foreach ($buses as $b)
+          <option value="{{ $b->id }}" {{ (string) $filters['bus_id'] === (string) $b->id ? 'selected' : '' }}>{{ $b->registration_number }}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="ff"><label>Date from</label><input type="date" name="date_from" value="{{ $filters['date_from'] }}" /></div>
+    <div class="ff"><label>Date to</label><input type="date" name="date_to" value="{{ $filters['date_to'] }}" /></div>
+    <div class="actions">
+      <button type="submit" class="btn-primary">Apply</button>
+      @if ($hasFilters)
+        <a href="{{ route('panel.fuel', ['tab' => 'fuel']) }}" class="btn-ghost btn-ghost--sm">Clear</a>
+      @endif
+    </div>
+  </form>
+
   <table class="data-table">
     <thead>
       <tr>
@@ -152,6 +173,36 @@
       Add Record
     </button>
   </div>
+
+  <form method="GET" action="{{ route('panel.fuel') }}" class="list-filter">
+    <input type="hidden" name="tab" value="maintenance">
+    <div class="ff">
+      <label>Bus</label>
+      <select name="bus_id">
+        <option value="">All buses</option>
+        @foreach ($buses as $b)
+          <option value="{{ $b->id }}" {{ (string) $filters['bus_id'] === (string) $b->id ? 'selected' : '' }}>{{ $b->registration_number }}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="ff">
+      <label>Type</label>
+      <select name="type">
+        <option value="">All types</option>
+        @foreach (\App\Models\MaintenanceRecord::$types as $mt)
+          <option value="{{ $mt }}" {{ $filters['type'] === $mt ? 'selected' : '' }}>{{ $mt }}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="ff"><label>Date from</label><input type="date" name="date_from" value="{{ $filters['date_from'] }}" /></div>
+    <div class="ff"><label>Date to</label><input type="date" name="date_to" value="{{ $filters['date_to'] }}" /></div>
+    <div class="actions">
+      <button type="submit" class="btn-primary">Apply</button>
+      @if ($hasFilters)
+        <a href="{{ route('panel.fuel', ['tab' => 'maintenance']) }}" class="btn-ghost btn-ghost--sm">Clear</a>
+      @endif
+    </div>
+  </form>
 
   <table class="data-table">
     <thead>
