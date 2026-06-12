@@ -104,7 +104,7 @@
       </div>
       <div class="report-summary-item">
         <span class="report-summary-label">Total Cost</span>
-        <span class="report-summary-value">LKR {{ number_format((float)$fuelTotals->total_cost, 2) }}</span>
+        <span class="report-summary-value">LKR {{ number_format((float)$fuelTotals->sum_cost, 2) }}</span>
       </div>
     </div>
   @endif

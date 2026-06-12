@@ -41,7 +41,7 @@ class ReportController extends Controller
                 ->when($request->date_to,   fn ($q, $v) => $q->whereDate('fuel_date', '<=', $v))
                 ->when($request->bus_id,    fn ($q, $v) => $q->where('bus_id', $v))
                 ->when($request->driver_id, fn ($q, $v) => $q->where('driver_id', $v))
-                ->selectRaw('SUM(litres) as total_litres, SUM(litres * cost_per_litre) as total_cost')
+                ->selectRaw('SUM(litres) as total_litres, SUM(litres * cost_per_litre) as sum_cost')
                 ->first();
 
             $fuelTotals = $totals;
