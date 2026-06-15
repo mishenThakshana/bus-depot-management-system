@@ -75,12 +75,16 @@ class LocationController extends Controller
             ->get();
 
         $buses = $runs->map(function (ScheduleRun $run) {
-            $location = $run->locations()->latest('recorded_at')->first();
+            // The two most recent fixes: the latest is the marker position, and
+            // the one before it gives the heading so the bus points the right way.
+            $recent = $run->locations()->latest('recorded_at')->take(2)->get();
+            $location = $recent->first();
 
             if (! $location) {
                 return null;
             }
 
+            $previous = $recent->get(1);
             $schedule = $run->schedule;
 
             return [
@@ -90,6 +94,7 @@ class LocationController extends Controller
                 'route_name' => $schedule->route?->name,
                 'latitude' => (float) $location->latitude,
                 'longitude' => (float) $location->longitude,
+                'heading' => $this->bearing($previous, $location),
                 'departure_time' => substr((string) $schedule->departure_time, 0, 5),
                 'arrival_time' => substr((string) $schedule->arrival_time, 0, 5),
                 'recorded_at' => $location->recorded_at?->toIso8601String(),
@@ -117,5 +122,26 @@ class LocationController extends Controller
             ->values();
 
         return response()->json($busIds);
+    }
+
+    /**
+     * Compass bearing in degrees (0 = north, clockwise) from a previous fix to
+     * the current one, used to rotate the bus marker toward its direction of
+     * travel. Null when there is no previous fix to measure against.
+     */
+    private function bearing(?BusLocation $from, BusLocation $to): ?float
+    {
+        if (! $from) {
+            return null;
+        }
+
+        $lat1 = deg2rad((float) $from->latitude);
+        $lat2 = deg2rad((float) $to->latitude);
+        $dLng = deg2rad((float) $to->longitude - (float) $from->longitude);
+
+        $y = sin($dLng) * cos($lat2);
+        $x = cos($lat1) * sin($lat2) - sin($lat1) * cos($lat2) * cos($dLng);
+
+        return round(fmod(rad2deg(atan2($y, $x)) + 360, 360), 1);
     }
 }
