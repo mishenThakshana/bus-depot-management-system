@@ -20,19 +20,25 @@ class DriverScheduleController extends Controller
 
         abort_unless($driver, 403, 'No driver record is linked to your account.');
 
+        // Whether this driver has a run live right now — drives the passive GPS
+        // sharing indicator and decides if the browser starts tracking.
+        $hasActiveRun = ScheduleRun::activeNow()
+            ->whereHas('schedule', fn (Builder $q) => $q->where('driver_id', $driver->id))
+            ->exists();
+
         $filters = [
             'date_from' => $request->query('date_from'),
-            'date_to'   => $request->query('date_to'),
+            'date_to' => $request->query('date_to'),
             'time_from' => $request->query('time_from'),
-            'time_to'   => $request->query('time_to'),
+            'time_to' => $request->query('time_to'),
         ];
 
         $view = $request->query('view') === 'list' ? 'list' : 'calendar';
 
         // ── Calendar view: one month at a time, grouped by date then timeslot ──
-        $month  = $this->resolveMonth($request->query('month'), $filters['date_from']);
+        $month = $this->resolveMonth($request->query('month'), $filters['date_from']);
         $mStart = $month->copy()->startOfMonth();
-        $mEnd   = $month->copy()->endOfMonth();
+        $mEnd = $month->copy()->endOfMonth();
 
         $byDate = $this->filteredRuns($driver->id, $filters)
             ->whereBetween('schedule_runs.run_date', [$mStart->toDateString(), $mEnd->toDateString()])
@@ -53,16 +59,17 @@ class DriverScheduleController extends Controller
             ->withQueryString();
 
         return view('panel.driver-schedule', [
-            'driver'     => $driver,
-            'view'       => $view,
-            'filters'    => $filters,
+            'driver' => $driver,
+            'hasActiveRun' => $hasActiveRun,
+            'view' => $view,
+            'filters' => $filters,
             'hasFilters' => collect($filters)->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty(),
-            'runs'       => $runs,
-            'byDate'     => $byDate,
-            'month'      => $month,
-            'prevMonth'  => $month->copy()->subMonth()->format('Y-m'),
-            'nextMonth'  => $month->copy()->addMonth()->format('Y-m'),
-            'today'      => Carbon::today(),
+            'runs' => $runs,
+            'byDate' => $byDate,
+            'month' => $month,
+            'prevMonth' => $month->copy()->subMonth()->format('Y-m'),
+            'nextMonth' => $month->copy()->addMonth()->format('Y-m'),
+            'today' => Carbon::today(),
         ]);
     }
 
@@ -96,11 +103,11 @@ class DriverScheduleController extends Controller
 
         return [
             'departure' => substr((string) $schedule?->departure_time, 0, 5),
-            'arrival'   => substr((string) $schedule?->arrival_time, 0, 5),
-            'route'     => $schedule?->route?->name ?? '—',
-            'bus'       => $schedule?->bus?->registration_number ?? '—',
+            'arrival' => substr((string) $schedule?->arrival_time, 0, 5),
+            'route' => $schedule?->route?->name ?? '—',
+            'bus' => $schedule?->bus?->registration_number ?? '—',
             'cancelled' => $run->isCancelled(),
-            'past'      => $run->isPast(),
+            'past' => $run->isPast(),
         ];
     }
 
@@ -108,7 +115,7 @@ class DriverScheduleController extends Controller
     {
         if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
             try {
-                return Carbon::createFromFormat('Y-m-d', $month . '-01')->startOfMonth();
+                return Carbon::createFromFormat('Y-m-d', $month.'-01')->startOfMonth();
             } catch (\Throwable) {
                 // fall through
             }

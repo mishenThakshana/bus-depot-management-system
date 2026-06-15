@@ -1050,3 +1050,77 @@ input, select, textarea {
 .list-filter .actions { display: flex; align-items: center; gap: 8px; }
 .list-filter .actions .btn-primary,
 .list-filter .actions .btn-ghost { height: 36px; }
+
+
+/* ── Live Tracking ────────────────────────────────────────── */
+
+/* Map fills the panel content area, with the toolbar pinned above it. */
+.live-tracking { display: flex; flex-direction: column; height: calc(100vh - 120px); min-height: 420px; }
+.live-tracking__bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 16px; background: var(--surface);
+  border: 1px solid var(--border); border-bottom: none;
+  border-radius: 8px 8px 0 0; flex-wrap: wrap;
+}
+.live-tracking__count {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-muted);
+}
+.live-tracking__count-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 24px; height: 24px; padding: 0 8px; border-radius: 12px;
+  background: var(--accent); color: #fff; font-size: 12px; font-weight: 700;
+}
+.live-tracking__pulse {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--success);
+  box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5); animation: lt-pulse 1.8s infinite;
+}
+@keyframes lt-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5); }
+  70%  { box-shadow: 0 0 0 7px rgba(22, 163, 74, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+.live-tracking__map {
+  flex: 1 1 auto; min-height: 0;
+  border: 1px solid var(--border); border-radius: 0 0 8px 8px; overflow: hidden;
+  background: var(--bg);
+}
+.live-tracking__empty {
+  height: 100%; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; padding: 24px; text-align: center;
+  color: var(--text-muted);
+}
+
+/* Marker InfoWindow card */
+.lt-tip { font-family: inherit; min-width: 170px; padding: 2px 2px 3px; }
+.lt-tip__head { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+.lt-tip__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.lt-tip__reg { font-size: 14px; font-weight: 700; color: #1a1a1a; }
+.lt-tip__row { display: flex; justify-content: space-between; gap: 16px; font-size: 12px; padding: 2px 0; }
+.lt-tip__label { color: #6b6b6b; }
+.lt-tip__value { color: #1a1a1a; font-weight: 500; text-align: right; }
+
+/* Driver passive status pill (driver schedule page) */
+.tracking-status {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);
+}
+.tracking-status__dot {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0;
+}
+.tracking-status[data-state="live"] { color: var(--success); border-color: #bbf7d0; background: #f0fdf4; }
+.tracking-status[data-state="live"] .tracking-status__dot {
+  background: var(--success); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5); animation: lt-pulse 1.8s infinite;
+}
+.tracking-status[data-state="connecting"] .tracking-status__dot,
+.tracking-status[data-state="paused"] .tracking-status__dot { background: var(--warning); }
+.tracking-status[data-state="connecting"],
+.tracking-status[data-state="paused"] { color: var(--warning); }
+.tracking-status[data-state="denied"] .tracking-status__dot,
+.tracking-status[data-state="ended"] .tracking-status__dot,
+.tracking-status[data-state="off"] .tracking-status__dot { background: var(--error); }
+.tracking-status[data-state="denied"],
+.tracking-status[data-state="ended"],
+.tracking-status[data-state="off"] { color: var(--error); }
+.page-header .tracking-status { margin-top: 12px; }

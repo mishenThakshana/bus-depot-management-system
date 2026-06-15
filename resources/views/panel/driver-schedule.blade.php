@@ -28,6 +28,10 @@
 <div class="page-header">
   <h1 class="page-title">My Schedule</h1>
   <p class="page-subtitle">Your assigned runs, {{ $driver->name }}. This view is read-only — contact a supervisor for changes.</p>
+  <div class="tracking-status" id="tracking-status" data-state="{{ $hasActiveRun ? 'connecting' : 'off' }}">
+    <span class="tracking-status__dot"></span>
+    <span class="tracking-status__label">{{ $hasActiveRun ? 'Preparing to share your location…' : 'No active run — location sharing is off' }}</span>
+  </div>
 </div>
 
 <div class="table-wrapper">
@@ -355,5 +359,12 @@
   function closeDayOnOverlay(e) { if (e.target === dayModal) closeDay(); }
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDay(); });
 </script>
+
+@if ($hasActiveRun)
+<script>
+  // A run is live now — start sharing this browser's location to the server.
+  document.addEventListener('DOMContentLoaded', () => window.initDriverTracking());
+</script>
+@endif
 
 @endsection

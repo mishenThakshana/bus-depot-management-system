@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\ScheduleRunController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DriverScheduleController;
+use App\Http\Controllers\LocationController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root to login
@@ -130,5 +131,23 @@ Route::prefix('panel')->name('panel.')->middleware(['auth', 'force.password.chan
         Route::get('/reports/fuel',               [ReportController::class, 'exportFuel'])->name('reports.fuel');
         Route::get('/reports/maintenance',        [ReportController::class, 'exportMaintenance'])->name('reports.maintenance');
         Route::get('/reports/schedule',           [ReportController::class, 'exportSchedule'])->name('reports.schedule');
+    });
+});
+
+
+// ── Live GPS Tracking ──
+// Same auth stack as the panel; role-gated per action just like the panel pages.
+Route::middleware(['auth', 'force.password.change', 'session.timeout'])->group(function () {
+
+    // Admin & supervisor — the live map plus the poll endpoint it uses to drop
+    // markers for buses whose run has ended.
+    Route::middleware('role:admin,supervisor')->group(function () {
+        Route::get('/live-tracking',      [LocationController::class, 'liveMap'])->name('live-tracking');
+        Route::get('/api/active-run-ids', [LocationController::class, 'activeRunIds'])->name('api.active-run-ids');
+    });
+
+    // Driver — ingest a GPS fix from the run currently in progress.
+    Route::middleware('role:driver')->group(function () {
+        Route::post('/api/location', [LocationController::class, 'store'])->name('api.location.store');
     });
 });

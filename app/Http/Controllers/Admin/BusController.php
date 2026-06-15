@@ -97,7 +97,9 @@ class BusController extends Controller
 
     private function hasActiveTrips(Bus $bus): bool
     {
-        // Wire up once Trip model exists: return $bus->trips()->whereIn('status', ['active','upcoming'])->exists();
-        return isset($bus) && false;
+        return $bus->schedules()
+            ->where('is_active', true)
+            ->where('end_date', '>=', now()->toDateString())
+            ->exists();
     }
 }
